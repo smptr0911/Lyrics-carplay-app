@@ -2,10 +2,46 @@
 
 > An iOS companion app for discovering, synchronizing, and displaying song lyrics, with an exploration of Apple CarPlay-compatible experiences.
 
-**Status:** Planning / Proof of Concept  
+**Status:** Scaffold / mocked iPhone proof of concept
 **Platform:** iOS (primary); CarPlay (subject to Apple's supported categories, templates, and entitlement approval)  
 **Language:** Swift  
 **UI:** SwiftUI
+
+## Current implementation and next verification
+
+Product direction: Spotify track information and controls plus parked video take priority. Synchronized lyrics are limited to sources with explicit platform and lyrics permissions. Spotify lyrics remain disabled. See [product decisions](docs/product-decisions.md).
+
+Implemented code now includes Spotify App Remote, an Apple Music system-player adapter, persisted source selection, onboarding/privacy controls, local demo lyrics, a configurable HTTP lyrics client, an original-fixture development server, AirPlay video, and a simulator-only CarPlay template preview. Account setup, licensed production data, Apple approval, and physical validation are not implied by this code.
+
+- [Start directly on Mac through GitHub](docs/mac-start.md)
+- [Mac handoff and build commands](docs/mac-handoff.md)
+- [Spotify app creation and Client ID setup](docs/spotify-setup.md)
+- [Local development API](backend/README.md)
+- [Release gates](docs/release-checklist.md)
+
+```sh
+# Windows or macOS: structural and local-backend checks
+python scripts/validate_project.py
+python -m unittest discover -s backend/tests -v
+# macOS: simulator tests and unsigned device Release compile
+bash scripts/verify_on_mac.sh
+```
+
+## Implementation checklist
+
+See [???? ?? ?? ?? ? ?? ??](docs/project-tasks.md) for the ordered completion plan. Start with the reproducible foundation check:
+
+```sh
+python scripts/validate_project.py
+# On a Mac with Xcode and a compatible simulator:
+python3 scripts/validate_project.py --xcode
+```
+
+The first command validates file/configuration structure only. The second requires an actual iOS simulator build and tests. The default selected source is Spotify. Configure its public Client ID and test on an iPhone, or select Demo for local lyrics previews. A licensed backend, native CarPlay playback, signing and device validation remain explicit tasks. See [Spotify integration and policy constraints](docs/spotify-integration.md).
+
+### CarPlay simulator prototype
+
+On macOS, open the project and choose the **CarPlay Simulator** scheme with an iPhone simulator destination. The simulator-only scene supports demo library/detail navigation. Follow the [CarPlay simulator guide](docs/carplay-simulator.md). Physical-device builds do not enable this prototype. Head-unit lyrics and native video browsing remain unimplemented.
 
 ## 1. Vision
 
@@ -47,6 +83,14 @@ Lyrics CarPlay aims to make it easier to follow lyrics for the music you're list
 | Accessibility | P1 | Dynamic Type, VoiceOver labels, contrast, reduced motion |
 | CarPlay feasibility spike | P0 research | Written decision on category, entitlement, templates, and permitted functionality |
 | CarPlay implementation | Conditional | Only after confirming eligibility and a driver-safe approved design |
+
+### Added scope: parked video
+
+The **Video** tab plays user-provided direct HTTPS MP4/HLS streams using native playback controls and supports AirPlay output to compatible parked vehicles. The vehicle/system controls external video availability. This is not a built-in parking detector or native CarPlay video browser. See [parked video implementation and hardware checks](docs/parked-video.md).
+
+- [x] iPhone video player, AirPlay route selection, URL validation, loading and error states.
+- [ ] Validate playback and vehicle restrictions on a supported physical vehicle.
+- [ ] Native CarPlay video browsing: requires matching SDK and approved video entitlement.
 
 ## 4. Technology stack
 
@@ -161,7 +205,7 @@ This is a **target structure**, not a claim that all listed files already exist.
 **Estimated duration:** 1 week  
 **Milestone:** `M0 — Feasibility decision`
 
-- [ ] Review Apple's current CarPlay app-category and entitlement requirements.
+- [x] Review Apple's current CarPlay app-category and entitlement requirements. See [review dated 2026-11-12](docs/carplay-feasibility.md); eligibility and final go/no-go remain open.
 - [ ] Determine whether any proposed feature can be implemented using approved CarPlay templates.
 - [ ] Record prohibited or unsupported concepts in `docs/carplay-feasibility.md`.
 - [ ] Confirm which music sources expose authorized metadata and accurate playback timing.
@@ -417,7 +461,7 @@ A feature is done when it has clear acceptance criteria, is tested, handles expe
 - An Apple Developer account for capabilities and distribution that require it.
 - Credentials for any selected authorized music or lyrics APIs.
 
-### Local setup (once the Xcode project is committed)
+### Local setup
 
 ```bash
 git clone https://github.com/<YOUR_USERNAME>/lyrics-carplay.git
@@ -432,7 +476,7 @@ open LyricsCarPlay.xcodeproj
 5. Build and run the iPhone app.
 6. Use mock services until live integrations are available.
 
-The repository URL above is a **placeholder**. No Xcode project or live provider integration is included in this README alone.
+The repository URL above is a **placeholder**. The committed Xcode project includes a local demo, unit/UI test targets, and a shared scheme. Live playback, a licensed lyrics service, and CarPlay UI are not implemented. Requires Xcode 16+ and iOS 17+. See `docs/testing.md` for build and test commands.
 
 ## 17. Contributing
 
