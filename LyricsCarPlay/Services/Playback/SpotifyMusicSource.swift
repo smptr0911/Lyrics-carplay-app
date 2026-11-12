@@ -123,7 +123,7 @@ extension SpotifyMusicSource: SPTAppRemoteDelegate, SPTAppRemotePlayerStateDeleg
         authorization = .authorized
         statusMessage = "Spotify connected. Lyrics synchronization is unavailable for this source."
         appRemote.playerAPI?.delegate = self
-        appRemote.playerAPI?.subscribe(commandCallback)
+        appRemote.playerAPI?.subscribe(toPlayerState: commandCallback)
         appRemote.playerAPI?.getPlayerState { [weak self] result, error in
             guard let self, self.selected, appRemote.isConnected else { return }
             if let state = result as? SPTAppRemotePlayerState { self.playerStateDidChange(state) }
