@@ -5,16 +5,37 @@ on:
 permissions:
   contents: read
 jobs:
-  test:
+  simulator-tests:
     runs-on: macos-15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Validate project structure
         run: python3 scripts/validate_project.py
-      - name: Simulator tests and unsigned device Release build
-        run: bash scripts/verify_on_mac.sh
+      - name: Run simulator unit and UI tests
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p .build/logs
+          python3 scripts/validate_project.py --xcode 2>&1 | tee .build/logs/simulator.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ios-test-results
+          name: simulator-test-logs
+          path: .build/logs/
+  device-release-build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile unsigned device Release build
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p .build/logs
+          xcodebuild build -project LyricsCarPlay.xcodeproj -scheme LyricsCarPlay -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tee .build/logs/device-release.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: device-release-build-logs
           path: .build/logs/
