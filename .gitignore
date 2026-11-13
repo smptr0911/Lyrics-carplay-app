@@ -218,3 +218,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Xcode and local service configuration
+DerivedData/
+build/
+*.xcresult/
+xcuserdata/
+*.xcuserstate
+*.ipa
+*.dSYM/
+Config/Local.xcconfig
+.env
+.env.*
+!.env.example
+
+.build/

@@ -1,0 +1,13 @@
+name: Bug report
+description: Report a reproducible app issue
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected result, and actual result
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Device and iOS version

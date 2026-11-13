@@ -1,0 +1,31 @@
+{
+  "trackID": "demo:open-road",
+  "attribution": "Original demonstration lyrics created for this project.",
+  "lines": [
+    {
+      "startTime": 0,
+      "text": "Morning light across the sky"
+    },
+    {
+      "startTime": 5,
+      "text": "Clouds like paper drifting by"
+    },
+    {
+      "startTime": 10,
+      "text": "Every mile a brand new day"
+    },
+    {
+      "startTime": 15,
+      "text": "Hear the rhythm lead the way"
+    },
+    {
+      "startTime": 20,
+      "text": "Let the quiet melody flow"
+    },
+    {
+      "startTime": 25,
+      "text": "There is room for us to grow"
+    }
+  ],
+  "cacheUntil": null
+}

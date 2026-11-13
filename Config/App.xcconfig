@@ -1,0 +1,5 @@
+// Public Spotify application identifier. No client secret belongs in an iOS app.
+APP_BUNDLE_IDENTIFIER = org.example.LyricsCarPlay
+SPOTIFY_CLIENT_ID =
+LYRICS_API_URL =
+#include? "Local.xcconfig"

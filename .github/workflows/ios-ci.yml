@@ -1,0 +1,20 @@
+name: iOS CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate project structure
+        run: python3 scripts/validate_project.py
+      - name: Simulator tests and unsigned device Release build
+        run: bash scripts/verify_on_mac.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-test-results
+          path: .build/logs/
