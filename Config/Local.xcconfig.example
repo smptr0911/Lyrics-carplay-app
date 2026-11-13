@@ -1,0 +1,11 @@
+// Copy to Local.xcconfig (ignored by Git) and replace this public ID.
+SPOTIFY_CLIENT_ID = YOUR_SPOTIFY_CLIENT_ID
+
+// Optional HTTPS endpoint; xcconfig requires a separated URL slash.
+// LYRICS_API_URL = https:/$()/your-host.example/v1/lyrics
+// Debug iOS simulator only, after starting the local server:
+// LYRICS_API_URL = http:/$()/localhost:8787/v1/lyrics
+
+// Set these to your own registered App ID and Apple development team.
+// APP_BUNDLE_IDENTIFIER = com.yourcompany.lyricscarplay
+// DEVELOPMENT_TEAM = YOUR_TEAM_ID
