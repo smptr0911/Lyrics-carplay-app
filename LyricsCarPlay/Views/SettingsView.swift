@@ -16,14 +16,21 @@ struct SettingsView: View {
                     }
                 }
                 Section("Music source") {
-                    Menu {
-                        ForEach(MusicApp.allCases) { app in
-                            Button(app.title) { selectMusicApp(app) }
+                    ForEach(MusicApp.allCases) { app in
+                        Button {
+                            selectMusicApp(app)
+                        } label: {
+                            HStack {
+                                Text(app.title)
+                                Spacer()
+                                if preferences.musicApp == app {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.tint)
+                                }
+                            }
                         }
-                    } label: {
-                        LabeledContent("Music app", value: preferences.musicApp.title)
+                        .accessibilityIdentifier(app.title)
                     }
-                    .accessibilityIdentifier("musicAppPicker")
                     LabeledContent("Current source", value: model.selectedMusicApp.title)
                     Text(model.sourceStatus).font(.footnote).foregroundStyle(.secondary)
                     if model.selectedMusicApp != .demo {

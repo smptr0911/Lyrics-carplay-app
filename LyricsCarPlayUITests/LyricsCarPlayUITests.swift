@@ -15,7 +15,6 @@ final class LyricsCarPlayUITests: XCTestCase {
         app.launchArguments = ["--demo-mode"]
         app.launch()
         app.tabBars.buttons["Settings"].tap()
-        app.buttons["musicAppPicker"].tap()
         let spotify = app.buttons["Spotify"]
         XCTAssertTrue(spotify.waitForExistence(timeout: 3))
         spotify.tap()
