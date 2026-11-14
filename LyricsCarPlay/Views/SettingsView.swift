@@ -16,10 +16,13 @@ struct SettingsView: View {
                     }
                 }
                 Section("Music source") {
-                    Picker("Music app", selection: Binding(get: { preferences.musicApp }, set: selectMusicApp)) {
-                        ForEach(MusicApp.allCases) { app in Text(app.title).tag(app) }
+                    Menu {
+                        ForEach(MusicApp.allCases) { app in
+                            Button(app.title) { selectMusicApp(app) }
+                        }
+                    } label: {
+                        LabeledContent("Music app", value: preferences.musicApp.title)
                     }
-                    .pickerStyle(.menu)
                     .accessibilityIdentifier("musicAppPicker")
                     LabeledContent("Current source", value: model.selectedMusicApp.title)
                     Text(model.sourceStatus).font(.footnote).foregroundStyle(.secondary)

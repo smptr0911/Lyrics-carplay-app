@@ -4,7 +4,7 @@
 
 ## 코드 가져오기
 
-파일 복사 없이 GitHub에서 받으려면 [Mac 시작 안내](mac-start.md)를 따릅니다. 개발 브랜치는 feature/ios-foundation입니다. 아래 ZIP 방식은 선택 사항입니다.
+파일 복사 없이 GitHub에서 받으려면 [Mac 시작 안내](mac-start.md)를 따릅니다. Mac 개발 브랜치는 development/mac-xcode입니다. 아래 ZIP 방식은 선택 사항입니다.
 
 현재 작업 파일은 아직 Git에 커밋·푸시되지 않았을 수 있습니다. 원격 저장소를 clone하는 것만으로 이번 코드가 모두 내려온다고 가정하지 마세요. 생성된 소스 ZIP을 Mac에 옮겨 압축 해제하거나, 변경을 검토한 뒤 본인이 커밋·푸시한 버전을 가져오면 됩니다.
 
