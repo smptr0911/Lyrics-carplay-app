@@ -1,6 +1,9 @@
 name: iOS CI
 on:
   push:
+    branches:
+      - main
+      - development/mac-xcode
   pull_request:
 permissions:
   contents: read

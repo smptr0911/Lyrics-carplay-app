@@ -7,6 +7,8 @@ The upstream repository uses two development branches based on `main`:
 
 Keep changes on the matching branch. Do not copy source files between computers; push the branch and pull it on the other machine when a change is intentionally shared. Merge completed work into `main` through a pull request so CI remains the integration gate.
 
+Backend, structural, and whitespace checks run on both branches. The Mac-only iOS workflow runs on `main`, `development/mac-xcode`, and pull requests; direct pushes to `development/windows-validation` do not consume a macOS runner.
+
 ## Mac/Xcode workflow
 
 1. Install Xcode, select it with `xcode-select`, and install an iOS 17 or newer simulator runtime.
