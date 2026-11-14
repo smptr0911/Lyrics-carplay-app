@@ -1,7 +1,7 @@
 # 파일 복사 없이 Mac에서 시작하기
 
 저장소: https://github.com/smptr0911/Lyrics-carplay-app
-개발 브랜치: feature/ios-foundation
+개발 브랜치: development/mac-xcode
 
 이 브랜치가 실제 원격에 게시된 뒤 아래 절차를 따릅니다. main에는 개발 코드가 아직 합쳐져 있지 않을 수 있습니다.
 
@@ -19,7 +19,7 @@
 ```sh
 mkdir -p ~/Projects
 cd ~/Projects
-git clone --branch feature/ios-foundation https://github.com/smptr0911/Lyrics-carplay-app.git
+git clone --branch development/mac-xcode https://github.com/smptr0911/Lyrics-carplay-app.git
 cd Lyrics-carplay-app
 git branch --show-current
 open LyricsCarPlay.xcodeproj
