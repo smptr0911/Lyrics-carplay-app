@@ -4,3 +4,5 @@
 *.py text eol=lf
 *.yml text eol=lf
 *.pbxproj text eol=lf
+
+.github/workflows/*.lock.yml linguist-generated=true
