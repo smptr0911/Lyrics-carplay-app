@@ -1,0 +1,87 @@
+name: PR automation
+run-name: "PR agent | ${{ github.event.pull_request.number }} | ${{ github.event.pull_request.head.sha }}"
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+permissions: {}
+concurrency:
+  group: pr-automation-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  pr_gate:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !startsWith(github.event.pull_request.head.ref, 'pr-fix/') &&
+      !startsWith(github.event.pull_request.head.ref, 'ci-repair/')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: read
+    outputs:
+      eligible: ${{ steps.check.outputs.eligible }}
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        id: check
+        with:
+          script: |
+            // PR_GATE_START: unit tests execute this exact script with API doubles.
+            const p = context.payload.pull_request;
+            const repo = context.repo;
+            const fullName = `${repo.owner}/${repo.repo}`;
+            let reason = 'One review/repair attempt admitted for this PR revision.';
+            let eligible = false;
+            if (context.eventName !== 'pull_request' || !p || p.base.ref !== 'main'
+                || p.base.repo.full_name !== fullName || p.head.repo?.full_name !== fullName
+                || p.state !== 'open' || !/^[a-f0-9]{40}$/.test(p.head.sha)
+                || /^(pr-fix|ci-repair)\//.test(p.head.ref)) {
+              reason = 'Out of scope, fork, closed PR or generated repair branch.';
+            } else {
+              const { data: current } = await github.rest.actions.getWorkflowRun({ ...repo, run_id: context.runId });
+              const { data: latest } = await github.rest.pulls.get({ ...repo, pull_number: p.number });
+              if (current.run_attempt !== 1 || latest.state !== 'open'
+                  || latest.head.sha !== p.head.sha || latest.head.ref !== p.head.ref
+                  || latest.head.repo?.full_name !== fullName || latest.base.ref !== 'main') {
+                reason = 'Rerun or stale/changed PR revision.';
+              } else {
+                eligible = true;
+                const title = `PR agent | ${p.number} | ${p.head.sha}`;
+                for await (const page of github.paginate.iterator(github.rest.actions.listWorkflowRuns, {
+                  ...repo, workflow_id: current.workflow_id, per_page: 100,
+                })) {
+                  if (page.data.some(run => run.id !== context.runId
+                      && run.run_number < current.run_number && run.display_title === title)) {
+                    eligible = false;
+                    reason = 'A prior run already consumed this PR revision, regardless of outcome.';
+                    break;
+                  }
+                }
+                if (eligible) {
+                  for await (const page of github.paginate.iterator(github.rest.pulls.listReviews, {
+                    ...repo, pull_number: p.number, per_page: 100,
+                  })) {
+                    if (page.data.some(review => review.body?.includes(`pr-agent-sha:${p.head.sha}`))) {
+                      eligible = false;
+                      reason = 'A completed review already records this revision.';
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            core.setOutput('eligible', String(eligible));
+            await core.summary.addHeading('PR agent admission').addRaw(reason).write();
+            // PR_GATE_END
+  review_and_repair:
+    needs: [pr_gate]
+    if: needs.pr_gate.outputs.eligible == 'true'
+    permissions:
+      contents: write
+      actions: read
+      checks: read
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/pr-agent.lock.yml
+    secrets:
+      COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+      CI_REPAIR_APP_PRIVATE_KEY: ${{ secrets.CI_REPAIR_APP_PRIVATE_KEY }}

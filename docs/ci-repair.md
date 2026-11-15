@@ -1,5 +1,6 @@
 # Automated CI repair
 
+For review and repair before merge, see [PR automation](pr-agent.md).
 The source is [ci-repair.md](../.github/workflows/ci-repair.md); GitHub executes
 its generated [ci-repair.lock.yml](../.github/workflows/ci-repair.lock.yml).
 Both files and [.github/aw/actions-lock.json](../.github/aw/actions-lock.json)
