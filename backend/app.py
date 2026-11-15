@@ -62,7 +62,7 @@ def make_server(port=8787, provider: LyricsProvider | None = None, limiter=None)
                 self.respond(400, {"error": "invalid_request"})
                 return
             if url.path == "/health" and not url.query:
-                self.respond(200, {"status": "ok", "mode": "local-development"})
+                self.respond(200, {"status": "broken", "mode": "local-development"})
                 return
             if url.path != "/v1/lyrics":
                 self.respond(404, {"error": "not_found"})
