@@ -15,6 +15,7 @@ Implemented code now includes Spotify App Remote, an Apple Music system-player a
 
 - [Start directly on Mac through GitHub](docs/mac-start.md)
 - [Mac handoff and build commands](docs/mac-handoff.md)
+- [Development branches and next steps](docs/development-workflow.md)
 - [Spotify app creation and Client ID setup](docs/spotify-setup.md)
 - [Local development API](backend/README.md)
 - [Release gates](docs/release-checklist.md)
@@ -36,6 +37,15 @@ python scripts/validate_project.py
 # On a Mac with Xcode and a compatible simulator:
 python3 scripts/validate_project.py --xcode
 ```
+
+### Development branches
+
+The upstream repository keeps platform workflows separate:
+
+- `development/mac-xcode` is the Mac/Xcode branch for Swift changes, simulator tests, device builds, and CarPlay Simulator validation.
+- `development/windows-validation` is the Windows branch for Python structural checks, backend tests, documentation, and repository maintenance.
+
+Both branches are based on `main`. Keep platform-specific work on its matching branch, regularly rebase or merge `main`, and open pull requests back to `main` only after the relevant checks pass. The complete ordered checklist is in [Development workflow](docs/development-workflow.md).
 
 The first command validates file/configuration structure only. The second requires an actual iOS simulator build and tests. The default selected source is Spotify. Configure its public Client ID and test on an iPhone, or select Demo for local lyrics previews. A licensed backend, native CarPlay playback, signing and device validation remain explicit tasks. See [Spotify integration and policy constraints](docs/spotify-integration.md).
 
