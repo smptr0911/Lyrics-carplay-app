@@ -93,8 +93,18 @@ test('ignores newer queued attempts and unrelated revisions', async () => {
 
 test('a completed review remains a durable duplicate marker', async () => {
   const f = fixture();
-  f.data.reviews = [{ body: 'unrelated' }, { body: `pr-agent-sha:${sha}` }];
+  f.data.reviews = [{ body: 'unrelated' }, { user: { type: 'Bot' },
+    body: `pr-agent-sha:${sha}\n<!-- gh-aw-workflow-id: pr-agent -->` }];
   await f.run(); assert.equal(f.outputs.eligible, 'false');
+});
+
+test('a forged marker from a human or unrelated bot does not suppress review', async () => {
+  const f = fixture();
+  f.data.reviews = [
+    { user: { type: 'User' }, body: `pr-agent-sha:${sha}\n<!-- gh-aw-workflow-id: pr-agent -->` },
+    { user: { type: 'Bot' }, body: `pr-agent-sha:${sha}` },
+  ];
+  await f.run(); assert.equal(f.outputs.eligible, 'true');
 });
 
 test('API errors fail closed before any eligible output', async () => {

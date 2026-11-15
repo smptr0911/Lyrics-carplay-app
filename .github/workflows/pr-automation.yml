@@ -60,7 +60,9 @@ jobs:
                   for await (const page of github.paginate.iterator(github.rest.pulls.listReviews, {
                     ...repo, pull_number: p.number, per_page: 100,
                   })) {
-                    if (page.data.some(review => review.body?.includes(`pr-agent-sha:${p.head.sha}`))) {
+                    if (page.data.some(review => review.user?.type === 'Bot'
+                        && review.body?.includes('gh-aw-workflow-id: pr-agent')
+                        && review.body.includes(`pr-agent-sha:${p.head.sha}`))) {
                       eligible = false;
                       reason = 'A completed review already records this revision.';
                       break;
