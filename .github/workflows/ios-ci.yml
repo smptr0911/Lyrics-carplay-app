@@ -6,10 +6,31 @@ on:
       - development/mac-xcode
   pull_request:
   workflow_dispatch:
+    inputs:
+      environment_only:
+        description: Inspect tools and Simulator menus without rebuilding
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
+  environment-inspection:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect actual development environment
+        run: |
+          set -o pipefail
+          mkdir -p .build/logs
+          python3 scripts/inspect_development_environment.py --probe-simulator-menu 2>&1 | tee .build/logs/environment.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: development-environment
+          path: .build/logs/
   simulator-tests:
+    if: ${{ inputs.environment_only != true }}
     runs-on: macos-15
     timeout-minutes: 25
     steps:
@@ -22,11 +43,6 @@ jobs:
           python3 scripts/inspect_apple_sdk.py
       - name: Validate project structure
         run: python3 scripts/validate_project.py
-      - name: Inspect actual development environment
-        run: |
-          set -o pipefail
-          mkdir -p .build/logs
-          python3 scripts/inspect_development_environment.py --probe-simulator-menu 2>&1 | tee .build/logs/environment.log
       - name: Run simulator unit and UI tests
         shell: bash
         run: |
@@ -39,6 +55,7 @@ jobs:
           name: simulator-test-logs
           path: .build/logs/
   device-release-build:
+    if: ${{ inputs.environment_only != true }}
     runs-on: macos-15
     timeout-minutes: 15
     steps:
