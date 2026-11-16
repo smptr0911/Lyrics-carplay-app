@@ -25,8 +25,8 @@ final class AirPlayHelpViewModel: ObservableObject {
     static let youtubeURL = URL(string: "https://www.youtube.com/")!
     private let opener: any ExternalURLOpening
 
-    init(opener: any ExternalURLOpening = SystemExternalURLOpener()) {
-        self.opener = opener
+    init(opener: (any ExternalURLOpening)? = nil) {
+        self.opener = opener ?? SystemExternalURLOpener()
     }
 
     func openYouTube() async {
