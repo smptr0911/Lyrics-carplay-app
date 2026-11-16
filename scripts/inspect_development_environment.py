@@ -29,7 +29,14 @@ def inspect(probe_menu=False):
             print(f"Installed Xcode bundle: {application.name}, version {version}")
     for args in (["xcodebuild", "-version"], ["xcodebuild", "-showsdks"],
                  ["xcrun", "swift", "--version"], ["xcrun", "simctl", "list", "runtimes"]):
-        print(command(args).strip())
+        try:
+            print(command(args).strip(), flush=True)
+        except subprocess.TimeoutExpired:
+            # A cold CoreSimulator service can take longer than discovery's time budget.
+            # The actual test command still fails if it cannot find a usable runtime.
+            if args[:2] != ["xcrun", "simctl"]:
+                raise
+            print("UNVERIFIED: simctl runtime inventory timed out; actual test runtime selection remains required.", flush=True)
     project = ["xcodebuild", "-project", "LyricsCarPlay.xcodeproj"]
     print("Shared targets and schemes:")
     print(command(project + ["-list", "-json"]).strip())

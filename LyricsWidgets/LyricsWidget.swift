@@ -19,7 +19,6 @@ struct LyricsTimelineProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<LyricsEntry>) -> Void) {
         Task {
             let entry = await currentEntry()
-            LyricsSurfaceDiagnostics.record("widget-timeline-read", snapshot: entry.snapshot)
             var entries = [entry]
             if entry.snapshot.expiresAt > entry.date {
                 let expiry = entry.snapshot.expiresAt
@@ -38,6 +37,7 @@ struct LyricsTimelineProvider: TimelineProvider {
             snapshot = try await repository.load() ?? .unavailable(at: now)
         } catch { snapshot = .unavailable(at: now, message: "Shared storage unavailable") }
         let captured = Date()
+        LyricsSurfaceDiagnostics.record("widget-storage-read", snapshot: snapshot)
         return LyricsEntry(date: captured, snapshot: snapshot.presentation(at: captured))
     }
 }

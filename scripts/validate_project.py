@@ -1,6 +1,7 @@
 """Validate scaffold integrity everywhere; --xcode additionally requires an iOS test run."""
 from pathlib import Path
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 import plistlib
@@ -115,8 +116,13 @@ def xcode_tests():
     candidates.sort(key=lambda item: item[0], reverse=True)
     if not candidates:
         raise RuntimeError("Install a compatible iPhone simulator runtime in Xcode first.")
+    results = ROOT / ".build/logs" / ("tests-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ") + ".xcresult")
+    results.parent.mkdir(parents=True, exist_ok=True)
+    print(f"Selected simulator: {candidates[0][1]['name']} (iOS {candidates[0][0]})", flush=True)
+    print(f"XCTest result bundle: {results}", flush=True)
     subprocess.run(["xcodebuild", "test", "-project", "LyricsCarPlay.xcodeproj", "-scheme", "LyricsCarPlay",
                     "-destination", f"platform=iOS Simulator,id={candidates[0][1]['udid']}",
+                    "-resultBundlePath", str(results),
                     "CODE_SIGNING_ALLOWED=NO"], cwd=ROOT, check=True)
 
 
