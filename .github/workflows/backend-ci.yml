@@ -2,6 +2,7 @@ name: Backend and repository checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -15,4 +16,4 @@ jobs:
       - run: python scripts/validate_project.py
       - run: python -m unittest discover -s backend/tests -v
       - name: Test CI repair admission guards
-        run: node --test .github/scripts/ci-repair-admission.test.cjs
+        run: node --test .github/scripts/*.test.cjs

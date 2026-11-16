@@ -15,6 +15,7 @@ if: >-
   github.event.workflow_run.head_repository.full_name == github.repository
 strict: true
 engine: copilot
+model: gpt-6.1-sol
 permissions:
   contents: read
   actions: read
@@ -34,6 +35,7 @@ network:
 tools:
   github:
     mode: gh-proxy
+    github-token: ${{ secrets.GITHUB_TOKEN }}
     toolsets: [repos, actions, issues, pull_requests]
 jobs:
   repair_gate:
@@ -84,10 +86,12 @@ steps:
         echo 'Failed logs could not be retrieved; read log-error.txt and report missing evidence.' > /tmp/gh-aw/agent/failed.log
       fi
 safe-outputs:
-  github-app:
-    client-id: ${{ vars.CI_REPAIR_APP_CLIENT_ID }}
-    private-key: ${{ secrets.CI_REPAIR_APP_PRIVATE_KEY }}
-    repositories: ["${{ github.event.repository.name }}"]
+  github-token: ${{ secrets.GITHUB_TOKEN }}
+  dispatch-workflow:
+    workflows: [backend-ci, ios-ci, pr-checks]
+    max: 3
+    target-ref: ci-repair/${{ github.event.workflow_run.head_sha }}
+    allowed-refs: ["ci-repair/${{ github.event.workflow_run.head_sha }}"]
   create-issue:
     max: 1
     title-prefix: "[ci-repair] "
@@ -175,6 +179,14 @@ The evidence window is this failed commit and its CI runs, not unrelated failure
    Do not wait for CI inside this run, mark a draft ready, approve, merge, enable
    auto-merge, or push directly to main. A PR is a candidate repair, not proof
    that the original failure is fixed.
+7. After recording the fix PR output, emit exactly one `dispatch_workflow`
+   output each for `backend-ci`, `ios-ci` and `pr-checks`, all depending on the
+   PR output's `output_id`. Use the configured fix-branch target ref; for
+   `pr-checks` pass `inputs: {"base_ref": "main"}`. These are the only allowed
+   dispatches. GITHUB_TOKEN-created PR events can require human approval;
+   explicit workflow_dispatch starts the existing checks automatically on the
+   actual repair commit. Never dispatch an agent workflow, retry a dispatch,
+   wait for CI inside this run, or report those external checks as passed.
 
 Use only safe outputs for GitHub mutations. Never use `gh pr create`,
 `gh issue create`, write APIs or `git push`. Use `noop` for duplicate, stale or

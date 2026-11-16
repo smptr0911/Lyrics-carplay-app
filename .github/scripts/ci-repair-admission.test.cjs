@@ -45,6 +45,7 @@ test('admits either exact CI name for a first failed main push', async () => {
 
 for (const [field, value] of [
   ['conclusion', 'success'], ['conclusion', 'cancelled'], ['event', 'pull_request'],
+  ['event', 'workflow_dispatch'],
   ['head_branch', 'development/mac-xcode'], ['name', 'PR checks'],
   ['head_repository', { full_name: 'attacker/repo' }], ['head_sha', 'bad-sha'],
 ]) {
