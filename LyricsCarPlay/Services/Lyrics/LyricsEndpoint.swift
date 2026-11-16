@@ -15,7 +15,7 @@ struct LyricsEndpoint {
     }
 
     static func configured(in bundle: Bundle = .main) -> URL? {
-        guard let raw = bundle.object(forInfoDictionaryKey: "LyricsAPIURL") as? String, 
+        guard let raw = bundle.object(forInfoDictionaryKey: "LyricsAPIURL") as? String,
               !raw.isEmpty, !raw.contains("$("), let url = URL(string: raw), isAllowed(url) else { return nil }
         return url
     }
