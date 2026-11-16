@@ -9,6 +9,7 @@ final class NowPlayingViewModel: ObservableObject {
     @Published private(set) var sourceStatus = ""
     @Published private(set) var canControlPlayback = false
     @Published private(set) var canSeek = false
+    @Published private(set) var canRequestAuthorization = true
     @Published private(set) var isConnecting = false
     private var isActive = false
     private var connectionEnabled = true
@@ -50,6 +51,7 @@ final class NowPlayingViewModel: ObservableObject {
         sourceStatus = playback.source.statusMessage
         canControlPlayback = playback.source.canControlPlayback
         canSeek = playback.source.canSeek
+        canRequestAuthorization = playback.source.canRequestAuthorization
         if snapshot.track?.id != loadedTrackID {
             request?.cancel()
             loadedTrackID = snapshot.track?.id

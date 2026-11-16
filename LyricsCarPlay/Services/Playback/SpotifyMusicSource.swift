@@ -16,6 +16,7 @@ final class SpotifyMusicSource: NSObject, MusicSource {
 
     var canControlPlayback: Bool { selected && remote?.isConnected == true && current.track != nil }
     var canSeek: Bool { canControlPlayback && seekAllowed }
+    var canRequestAuthorization: Bool { remote != nil }
 
     override init() {
         super.init()

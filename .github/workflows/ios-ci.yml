@@ -5,6 +5,7 @@ on:
       - main
       - development/mac-xcode
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

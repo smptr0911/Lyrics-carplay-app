@@ -11,7 +11,13 @@ struct NowPlayingView: View {
                 if model.selectedMusicApp != .demo {
                     Button(model.selectedMusicApp == .spotify ? "Open Spotify / Resume" : "Authorize Apple Music") {
                         Task { await model.connect() }
-                    }.disabled(model.isConnecting)
+                    }
+                    .disabled(model.isConnecting || !model.canRequestAuthorization)
+                    if model.selectedMusicApp == .spotify && !model.canRequestAuthorization {
+                        Text("Add SPOTIFY_CLIENT_ID to Config/Local.xcconfig, then rebuild the app.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 if let track = model.snapshot.track {
                     if let data = model.snapshot.artworkData, let image = UIImage(data: data) {

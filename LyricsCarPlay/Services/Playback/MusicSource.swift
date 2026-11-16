@@ -7,6 +7,7 @@ protocol MusicSource: AnyObject {
     var statusMessage: String { get }
     var canControlPlayback: Bool { get }
     var canSeek: Bool { get }
+    var canRequestAuthorization: Bool { get }
     var allowsLyrics: Bool { get }
     func requestAuthorization() async -> MusicAuthorization
     func snapshot() -> PlaybackSnapshot
@@ -22,6 +23,7 @@ extension MusicSource {
     var statusMessage: String { "Local demo ready." }
     var canControlPlayback: Bool { true }
     var canSeek: Bool { canControlPlayback }
+    var canRequestAuthorization: Bool { true }
     // Spotify explicitly prohibits syncing its recordings with lyrics/video.
     var allowsLyrics: Bool { kind != .spotify }
     func activate() { }
