@@ -6,14 +6,62 @@ on:
       - development/mac-xcode
   pull_request:
   workflow_dispatch:
+    inputs:
+      environment_only:
+        description: Inspect tools and Simulator menus without rebuilding
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
+  modern-sdk-tests:
+    if: ${{ inputs.environment_only != true }}
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify modern toolchain exists
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+          xcodebuild -showsdks
+          python3 scripts/inspect_apple_sdk.py
+      - name: Build and test with modern installed SDK
+        run: bash scripts/verify_on_mac.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: modern-sdk-test-logs
+          path: .build/logs/
+  environment-inspection:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect actual development environment
+        run: |
+          set -o pipefail
+          mkdir -p .build/logs
+          python3 scripts/inspect_development_environment.py --probe-simulator-menu 2>&1 | tee .build/logs/environment.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: development-environment
+          path: .build/logs/
   simulator-tests:
+    if: ${{ inputs.environment_only != true }}
     runs-on: macos-15
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Record Xcode and SDK versions
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun swift --version
+          python3 scripts/inspect_apple_sdk.py
       - name: Validate project structure
         run: python3 scripts/validate_project.py
       - name: Run simulator unit and UI tests
@@ -28,16 +76,28 @@ jobs:
           name: simulator-test-logs
           path: .build/logs/
   device-release-build:
+    if: ${{ inputs.environment_only != true }}
     runs-on: macos-15
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Record Xcode and SDK versions
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun swift --version
+          python3 scripts/inspect_apple_sdk.py
       - name: Compile unsigned device Release build
         shell: bash
         run: |
           set -o pipefail
           mkdir -p .build/logs
           xcodebuild build -project LyricsCarPlay.xcodeproj -scheme LyricsCarPlay -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tee .build/logs/device-release.log
+      - name: Run Clang static analyzer
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild analyze -project LyricsCarPlay.xcodeproj -scheme LyricsCarPlay -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tee .build/logs/analyze.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:

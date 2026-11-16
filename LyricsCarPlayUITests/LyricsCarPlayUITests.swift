@@ -18,9 +18,9 @@ final class LyricsCarPlayUITests: XCTestCase {
         let spotify = app.buttons["Spotify"]
         XCTAssertTrue(spotify.waitForExistence(timeout: 3))
         spotify.tap()
-        XCTAssertTrue(app.buttons["Open Spotify / Resume"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Connect Spotify"].waitForExistence(timeout: 3))
         app.tabBars.buttons["Now Playing"].tap()
-        XCTAssertTrue(app.buttons["Open Spotify / Resume"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Connect Spotify"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Open Road"].exists)
     }
 
@@ -32,6 +32,19 @@ final class LyricsCarPlayUITests: XCTestCase {
         XCTAssertTrue(app.textFields["videoURL"].exists)
         app.buttons["loadVideo"].tap()
         XCTAssertTrue(app.staticTexts["videoError"].waitForExistence(timeout: 2))
+    }
+
+    func testAirPlayGuideOpensFromVideoTab() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--demo-mode"]
+        app.launch()
+        app.tabBars.buttons["Video"].tap()
+        app.buttons["airPlayGuide"].tap()
+        XCTAssertTrue(app.navigationBars["AirPlay Guide"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Compatibility is unknown"].exists)
+        app.swipeUp()
+        XCTAssertTrue(app.buttons["openYouTube"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.switches.count > 0)
     }
 
     func testDemoJourney() {

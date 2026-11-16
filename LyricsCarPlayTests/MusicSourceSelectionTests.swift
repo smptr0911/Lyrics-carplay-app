@@ -37,16 +37,16 @@ final class MusicSourceSelectionTests: XCTestCase {
         XCTAssertEqual(requests, 0)
     }
 
-    func testPreferencePersistsAndUnknownValueDefaultsToSpotify() {
+    func testPreferencePersistsAndUnknownValueDefaultsToDemo() {
         let name = "MusicSourceSelectionTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
         defer { defaults.removePersistentDomain(forName: name) }
-        XCTAssertEqual(AppPreferences(defaults: defaults).musicApp, .spotify)
-        let preferences = AppPreferences(defaults: defaults)
-        preferences.musicApp = .demo
         XCTAssertEqual(AppPreferences(defaults: defaults).musicApp, .demo)
+        let preferences = AppPreferences(defaults: defaults)
+        preferences.musicApp = .appleMusic
+        XCTAssertEqual(AppPreferences(defaults: defaults).musicApp, .appleMusic)
         defaults.set("removed-app", forKey: "musicApp")
-        XCTAssertEqual(AppPreferences(defaults: defaults).musicApp, .spotify)
+        XCTAssertEqual(AppPreferences(defaults: defaults).musicApp, .demo)
     }
 
     func testSpotifyConfigurationRejectsUnsetIDAndUnrelatedCallbacks() {

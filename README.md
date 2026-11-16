@@ -1,501 +1,82 @@
-# Lyrics CarPlay
+# Lyrics CarPlay App
 
-> An iOS companion app for discovering, synchronizing, and displaying song lyrics, with an exploration of Apple CarPlay-compatible experiences.
+An iPhone lyrics companion with a foreground synchronization engine, authorized music metadata adapters, and best-effort WidgetKit / ActivityKit presentations. The existing Xcode project is preserved. This is a development build, not a certified vehicle integration or an App Store release.
 
-**Status:** Scaffold / mocked iPhone proof of concept
-**Platform:** iOS (primary); CarPlay (subject to Apple's supported categories, templates, and entitlement approval)  
-**Language:** Swift  
-**UI:** SwiftUI
+## Supported features
 
-## Current implementation and next verification
+- Account-free Demo: simulated playback of **Open Road** with original timestamped lyrics, pause/resume, seeking, playback rate and synchronization offset controls. No audio recording is bundled or played by Demo.
+- Binary-search lyric selection, track changes, gaps/overlaps, untimed/unavailable content and session-only UTF-8 LRC import. Imported files are bound to the selected track; matching avoids unrelated versions.
+- Apple Music public system-player adapter: authorization, eligible metadata/artwork, transport and position where exposed. Not arbitrary third-party playback monitoring.
+- Spotify Web API: read-only metadata/position, native PKCE authorization, protected Keychain credentials, refresh, backoff and foreground polling. **Spotify lyric synchronization is disabled.** Legacy App Remote is preserved but is not the default provider.
+- Embedded **LyricsWidgets** extension: `systemSmall` widget, Lock Screen / Dynamic Island Live Activity and availability-guarded supplemental small family. Shared snapshots use App Groups and explicit lyric-sharing permission. These surfaces do not promise karaoke timing.
+- **Video > YouTube and AirPlay guide**: manual parked-only setup, unknown/unsupported compatibility help and public HTTPS YouTube launch with website fallback. A separate existing native player accepts permitted direct HTTPS MP4/HLS streams; its route picker controls only that player.
 
-Product direction: Spotify track information and controls plus parked video take priority. Synchronized lyrics are limited to sources with explicit platform and lyrics permissions. Spotify lyrics remain disabled. See [product decisions](docs/product-decisions.md).
+## Requirements and verified scope
 
-Implemented code now includes Spotify App Remote, an Apple Music system-player adapter, persisted source selection, onboarding/privacy controls, local demo lyrics, a configurable HTTP lyrics client, an original-fixture development server, AirPlay video, and a simulator-only CarPlay template preview. Account setup, licensed production data, Apple approval, and physical validation are not implied by this code.
+Minimum deployment: **iOS 17**, iPhone. Use **Xcode 16 or newer** to compile the guarded iOS 18 small activity family. The project retains **Swift 5 language mode** with targeted concurrency checks and async/await; it is not declared Swift 6 strict-mode clean. macOS must meet the selected Xcode's requirements; consult [Apple's compatibility table](https://developer.apple.com/xcode/system-requirements/).
 
-- [Start directly on Mac through GitHub](docs/mac-start.md)
-- [Mac handoff and build commands](docs/mac-handoff.md)
-- [Development branches and next steps](docs/development-workflow.md)
-- [Spotify app creation and Client ID setup](docs/spotify-setup.md)
-- [Local development API](backend/README.md)
-- [Release gates](docs/release-checklist.md)
+The last completed pre-audit [macOS CI run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43946086918) built app and extension for unsigned device Release and passed 77 unit / 5 UI tests on Xcode 16.4, Swift compiler 6.1.2 and iOS 18.5. The [integration verification record](docs/INTEGRATION_TESTING.md) records the final audit separately. Local authoring is Windows; no local Xcode or physical iPhone/vehicle is attached to this session.
+
+CarPlay widgets and Live Activities require compatible **iOS 26+** CarPlay environments. Compiling on the iOS 18.5 SDK does not verify those presentations. Neither a standard CarPlay connection nor an iOS upgrade guarantees AirPlay vehicle video support.
+
+## Setup and build
+
+1. Open `LyricsCarPlay.xcodeproj` on a Mac and resolve the pinned Swift package dependency (Spotify iOS SDK 5.0.1). Select the shared **LyricsCarPlay** scheme and an installed iPhone simulator running iOS 17 or later.
+2. Run the app. Choose Demo in Settings if an earlier source choice was saved. In Now Playing press Play, seek using the slider and expand Timing and LRC import. Demo needs no provider credentials, backend or paid music account.
+3. For a signed iPhone build, copy `Config/Local.xcconfig.example` to ignored `Config/Local.xcconfig`. Replace `APP_BUNDLE_IDENTIFIER`, `APP_DEVELOPMENT_TEAM` and `LYRICS_APP_GROUP` with your registered identifiers. The default team is inherited from the existing project; it is not a provisioned account for other developers.
+4. Enable the same registered App Group on the app and extension App IDs and provisioning profiles. The extension identifier is `$(APP_BUNDLE_IDENTIFIER).LyricsWidgets`. Verify Signing & Capabilities on all targets, trust the Mac on iPhone, enable Developer Mode and run **LyricsCarPlay** on the device. App Groups and optional Associated Domains require appropriate Apple Developer account capabilities; a free Personal Team does not establish this configuration.
 
 ```sh
-# Windows or macOS: structural and local-backend checks
+# Windows or macOS: repository/backend checks
+python scripts/inspect_development_environment.py
 python scripts/validate_project.py
 python -m unittest discover -s backend/tests -v
-# macOS: simulator tests and unsigned device Release compile
+
+# Mac: actual installed tools, SDKs, schemes and resolved signing settings
+python3 scripts/inspect_development_environment.py --probe-simulator-menu
+
+# Mac: widget simulator build, app unit/UI tests, unsigned device build and analysis
 bash scripts/verify_on_mac.sh
 ```
 
-## Implementation checklist
-
-See [???? ?? ?? ?? ? ?? ??](docs/project-tasks.md) for the ordered completion plan. Start with the reproducible foundation check:
-
-```sh
-python scripts/validate_project.py
-# On a Mac with Xcode and a compatible simulator:
-python3 scripts/validate_project.py --xcode
-```
-
-### Development branches
-
-The upstream repository keeps platform workflows separate:
-
-- `development/mac-xcode` is the Mac/Xcode branch for Swift changes, simulator tests, device builds, and CarPlay Simulator validation.
-- `development/windows-validation` is the Windows branch for Python structural checks, backend tests, documentation, and repository maintenance.
-
-Both branches are based on `main`. Keep platform-specific work on its matching branch, regularly rebase or merge `main`, and open pull requests back to `main` only after the relevant checks pass. The complete ordered checklist is in [Development workflow](docs/development-workflow.md).
-
-The first command validates file/configuration structure only. The second requires an actual iOS simulator build and tests. The default selected source is Spotify. Configure its public Client ID and test on an iPhone, or select Demo for local lyrics previews. A licensed backend, native CarPlay playback, signing and device validation remain explicit tasks. See [Spotify integration and policy constraints](docs/spotify-integration.md).
+Unsigned CI does not validate provisioning. `xcodebuild analyze` runs Clang's analyzer and the build diagnostics; it is not a comprehensive Swift memory-leak or race detector. Use Instruments and device tests for those checks.
 
-### CarPlay simulator prototype
+## Apple Music setup
 
-On macOS, open the project and choose the **CarPlay Simulator** scheme with an iPhone simulator destination. The simulator-only scene supports demo library/detail navigation. Follow the [CarPlay simulator guide](docs/carplay-simulator.md). Physical-device builds do not enable this prototype. Head-unit lyrics and native video browsing remain unimplemented.
+The app declares the Apple Music usage explanation and requests MusicKit authorization plus media-library access where needed. In Settings choose Apple Music and tap Authorize Apple Music. Start a supported item in Apple's Music app, then return to this app. The adapter reads only what the public system music player exposes; inaccessible metadata produces an honest unavailable state. Denial, revocation, subscription/content variants and real playback need device validation. No Apple Music lyric endpoint exists in this implementation. See [music providers and matching](docs/MUSIC_PROVIDERS.md).
 
-## 1. Vision
+For MusicKit service use, enable **MusicKit** under the registered App ID's **App Services** in the developer portal, using the same bundle ID and team as the signed app. This is a runtime app service, not a new invented MusicKit entitlement. See [Apple's setup instructions](https://developer.apple.com/documentation/musickit/using-automatic-token-generation-for-apple-music-api). No private signing key or developer token is bundled in this app.
 
-Lyrics CarPlay aims to make it easier to follow lyrics for the music you're listening to. The initial product is a polished iPhone experience that identifies the currently playing track, retrieves licensed lyrics where available, synchronizes timed lines, and presents them clearly. The longer-term goal is to explore an Apple-approved CarPlay companion experience **without distracting drivers**.
+## Spotify setup
 
-**Important feasibility boundary:** Apple's public CarPlay APIs use restricted app categories and prescribed templates. A custom full-screen, scrolling-lyrics CarPlay interface is **not** an assumed supported feature. Do not build the project around obtaining a CarPlay entitlement or bypassing template restrictions. Prioritize iPhone lyrics, passenger-safe experiences, and approved audio-app interactions; validate CarPlay eligibility directly with Apple before implementing any CarPlay-specific UI. The project must not encourage drivers to read lyrics while driving.
-
-## 2. Goals and non-goals
-
-### Goals
-- Build a native, responsive iOS application.
-- Identify the current song from supported, authorized playback sources.
-- Retrieve lyrics through providers that explicitly permit the intended use.
-- Support both plain and time-synchronized lyrics when licensed data is available.
-- Provide a smooth line-highlighting and scrolling experience on iPhone.
-- Cache permitted metadata and lyrics securely and respect provider retention policies.
-- Implement robust loading, unavailable, offline, and authorization states.
-- Research an Apple-compliant CarPlay experience and document the result.
-
-### Non-goals for MVP
-- Showing arbitrary custom lyrics UI on the CarPlay head unit.
-- Reading or scraping another app's private playback data.
-- Scraping lyrics from websites or redistributing unlicensed lyrics.
-- Circumventing Apple entitlements, driver-distraction protections, or app review.
-- Guaranteeing support for Spotify or Apple Music playback before API capabilities are validated.
-
-## 3. MVP scope
-
-| Feature | Priority | Definition of done |
-|---|---|---|
-| App shell and navigation | P0 | Launches on supported iOS devices; clear home, now-playing, and settings screens |
-| Music authorization | P0 | Requests only required permissions; handles denial and revocation |
-| Now-playing metadata | P0 | Displays title, artist, album, artwork, and source when available |
-| Lyrics provider adapter | P0 | Fetches a permitted lyric response and normalizes it into app models |
-| Static lyrics view | P0 | Renders available lyrics; handles no-match and no-lyrics states |
-| Timed lyrics sync | P1 | Highlights the active line using a validated playback position |
-| Auto-scroll and manual override | P1 | Smoothly follows playback; pauses auto-scroll after user interaction |
-| Local caching | P1 | Obeys lyric provider licensing and cache rules |
-| Accessibility | P1 | Dynamic Type, VoiceOver labels, contrast, reduced motion |
-| CarPlay feasibility spike | P0 research | Written decision on category, entitlement, templates, and permitted functionality |
-| CarPlay implementation | Conditional | Only after confirming eligibility and a driver-safe approved design |
-
-### Added scope: parked video
-
-The **Video** tab plays user-provided direct HTTPS MP4/HLS streams using native playback controls and supports AirPlay output to compatible parked vehicles. The vehicle/system controls external video availability. This is not a built-in parking detector or native CarPlay video browser. See [parked video implementation and hardware checks](docs/parked-video.md).
-
-- [x] iPhone video player, AirPlay route selection, URL validation, loading and error states.
-- [ ] Validate playback and vehicle restrictions on a supported physical vehicle.
-- [ ] Native CarPlay video browsing: requires matching SDK and approved video entitlement.
-
-## 4. Technology stack
-
-| Layer | Choice | Rationale |
-|---|---|---|
-| Language | Swift | Native iOS development |
-| Interface | SwiftUI | Declarative, testable UI |
-| Music integration | MusicKit / system media APIs where authorized | Apple Music catalog, permissions, and eligible playback features |
-| CarPlay | CarPlay framework, conditional | Only for approved app categories and templates |
-| Concurrency | Swift async/await | Structured asynchronous networking |
-| Networking | URLSession | Native HTTP networking |
-| Persistence | SwiftData or lightweight local storage | Preferences and licensed cache metadata |
-| Architecture | MVVM + protocol-based services | Separation of UI, playback, and lyrics sources |
-| Dependency management | Swift Package Manager | Native package support |
-| Testing | XCTest / Swift Testing | Unit and integration testing |
-| CI | GitHub Actions + macOS runner | Build, test, and lint automation |
-| Optional backend | FastAPI + PostgreSQL | Only if provider secrets, account features, or usage limits require a server |
-
-**Provider caveats:** MusicKit is not a general-purpose interface for reading every other music app's playback state. Spotify playback integrations require a separate capability and policy review. Lyrics licensing is independent of music playback access: access to a track does not automatically grant permission to display or redistribute its lyrics.
-
-## 5. Proposed architecture
-
-```mermaid
-flowchart TD
-    A[SwiftUI iPhone App] --> B[NowPlayingViewModel]
-    B --> C[PlaybackCoordinator]
-    B --> D[LyricsCoordinator]
-    C --> E[MusicSource Protocol]
-    E --> F[Apple Music Adapter]
-    E --> G[Demo / Mock Adapter]
-    E -. Future, after validation .-> H[Other Provider Adapter]
-    D --> I[LyricsProvider Protocol]
-    I --> J[Licensed Lyrics API Adapter]
-    I --> K[Mock Lyrics Provider]
-    D --> L[Lyrics Sync Engine]
-    D --> M[Policy-Aware Cache]
-    N[CarPlay Feasibility Module] -. Approved APIs only .-> C
-```
-
-### Core responsibilities
-
-**PlaybackCoordinator:** Maintains the normalized track identity, playback state, current position, and source capabilities. Must not claim precise synchronization if the source does not provide reliable position updates.
-
-**LyricsCoordinator:** Matches tracks to lyrics, handles provider errors and licensing constraints, and exposes plain or timed lines to the view model.
-
-**LyricsSyncEngine:** Uses time stamps to select the active lyric line. Handles seeking, pausing, track changes, clock drift, and absent timing data.
-
-**Provider adapters:** Encapsulate vendor-specific authentication, rate limits, track IDs, responses, and error handling behind stable interfaces.
-
-## 6. Repository structure
-
-```text
-lyrics-carplay/
-├── README.md
-├── LICENSE
-├── .gitignore
-├── .github/
-│   ├── workflows/
-│   │   ├── ios-ci.yml
-│   │   └── pr-checks.yml
-│   ├── ISSUE_TEMPLATE/
-│   └── pull_request_template.md
-├── docs/
-│   ├── architecture.md
-│   ├── api-integrations.md
-│   ├── lyrics-licensing.md
-│   ├── carplay-feasibility.md
-│   ├── privacy-security.md
-│   └── testing.md
-├── LyricsCarPlay.xcodeproj/
-├── LyricsCarPlay/
-│   ├── App/
-│   │   └── LyricsCarPlayApp.swift
-│   ├── Models/
-│   │   ├── Track.swift
-│   │   ├── LyricLine.swift
-│   │   └── PlaybackState.swift
-│   ├── Views/
-│   │   ├── HomeView.swift
-│   │   ├── NowPlayingView.swift
-│   │   ├── LyricsView.swift
-│   │   └── SettingsView.swift
-│   ├── ViewModels/
-│   │   └── NowPlayingViewModel.swift
-│   ├── Services/
-│   │   ├── Playback/
-│   │   │   ├── MusicSource.swift
-│   │   │   ├── AppleMusicSource.swift
-│   │   │   └── MockMusicSource.swift
-│   │   ├── Lyrics/
-│   │   │   ├── LyricsProvider.swift
-│   │   │   ├── LicensedLyricsProvider.swift
-│   │   │   └── MockLyricsProvider.swift
-│   │   ├── LyricsSyncEngine.swift
-│   │   └── LyricsCache.swift
-│   ├── CarPlay/
-│   │   └── README.md
-│   ├── Resources/
-│   └── Utilities/
-├── LyricsCarPlayTests/
-│   ├── LyricsSyncEngineTests.swift
-│   ├── TrackMatchingTests.swift
-│   └── ProviderAdapterTests.swift
-└── LyricsCarPlayUITests/
-```
-
-This is a **target structure**, not a claim that all listed files already exist.
-
-## 7. Detailed development roadmap
-
-### Phase 0 — Feasibility, policies, and product definition
-**Estimated duration:** 1 week  
-**Milestone:** `M0 — Feasibility decision`
-
-- [x] Review Apple's current CarPlay app-category and entitlement requirements. See [review dated 2026-11-12](docs/carplay-feasibility.md); eligibility and final go/no-go remain open.
-- [ ] Determine whether any proposed feature can be implemented using approved CarPlay templates.
-- [ ] Record prohibited or unsupported concepts in `docs/carplay-feasibility.md`.
-- [ ] Confirm which music sources expose authorized metadata and accurate playback timing.
-- [ ] Compare lyrics providers by licensing, synchronized lyrics availability, pricing, attribution, and cache restrictions.
-- [ ] Choose the minimum supported iOS version and physical test devices.
-- [ ] Define driver-safety and passenger-use constraints.
-- [ ] Choose an MVP provider and prepare mock data as a fallback.
-
-**Exit criteria:** A written, evidence-backed go/no-go decision for CarPlay; a viable iPhone-only MVP independent of that decision.
-
-### Phase 1 — Project bootstrap and UI prototype
-**Estimated duration:** 1 week  
-**Milestone:** `M1 — App skeleton`
-
-- [ ] Create an Xcode iOS project using SwiftUI.
-- [ ] Set bundle identifier, deployment target, signing, and build configurations.
-- [ ] Add app navigation, reusable components, colors, and typography.
-- [ ] Build home, now-playing, lyrics, and settings screens with mock data.
-- [ ] Introduce `Track`, `LyricLine`, and `PlaybackState` models.
-- [ ] Establish MVVM boundaries and dependency injection.
-- [ ] Add unit-test and UI-test targets.
-- [ ] Configure `.gitignore`, issue templates, and PR checks.
-
-**Exit criteria:** App launches in the iOS simulator and demonstrates the complete mocked user journey.
-
-### Phase 2 — Music source integration
-**Estimated duration:** 1–2 weeks  
-**Milestone:** `M2 — Live track metadata`
-
-- [ ] Define the `MusicSource` protocol with track, playback state, and position capabilities.
-- [ ] Integrate the selected authorized source (Apple Music first, if suitable).
-- [ ] Implement permission request, authorization state, and account-error handling.
-- [ ] Show current track metadata and artwork when available.
-- [ ] Observe playback, pause, resume, seeking, and track changes.
-- [ ] Explicitly expose `positionUnavailable` when synchronization cannot be supported.
-- [ ] Test simulator limitations and physical-device behavior.
-
-**Exit criteria:** Authorized playback source drives the app UI; failures are visible and recoverable.
-
-### Phase 3 — Lyrics retrieval and matching
-**Estimated duration:** 1–2 weeks  
-**Milestone:** `M3 — Lyrics loaded`
-
-- [ ] Define a `LyricsProvider` protocol.
-- [ ] Integrate a provider with rights for the app's intended lyric display.
-- [ ] Match by provider track ID when possible; otherwise normalize title, artist, and duration.
-- [ ] Handle remasters, live versions, featured artists, and ambiguous matches.
-- [ ] Parse static and timed lyrics into normalized models.
-- [ ] Add request cancellation, rate-limit handling, retry rules, and attribution.
-- [ ] Store only data allowed by provider policy.
-- [ ] Provide explicit states for no lyrics, no network, and low-confidence match.
-
-**Exit criteria:** User can see the correct, authorized lyrics for supported tracks.
-
-### Phase 4 — Time synchronization and UX
-**Estimated duration:** 1–2 weeks  
-**Milestone:** `M4 — Synchronized lyrics`
-
-- [ ] Implement a deterministic time-to-line lookup.
-- [ ] Highlight the active line as playback progresses.
-- [ ] Implement auto-scroll with a temporary manual-scroll override.
-- [ ] Recalculate active line after seek, pause, resume, and track changes.
-- [ ] Handle instrumental gaps and lines with duplicate timestamps.
-- [ ] Avoid synthetic precision when timing data is absent.
-- [ ] Support larger text, VoiceOver, high contrast, and reduced motion.
-- [ ] Validate UI smoothness and battery impact on physical devices.
-
-**Exit criteria:** Timed lyrics stay acceptably aligned under normal playback, pauses, and seeks; static lyrics remain usable.
-
-### Phase 5 — Reliability, privacy, and offline behavior
-**Estimated duration:** 1 week  
-**Milestone:** `M5 — Beta-ready iPhone app`
-
-- [ ] Cache permitted responses with expiration and attribution rules.
-- [ ] Add a clear loading skeleton and empty/error states.
-- [ ] Store sensitive credentials only through appropriate secure mechanisms.
-- [ ] Keep vendor secrets out of the client binary; use a backend if required.
-- [ ] Minimize telemetry and avoid logging personal tokens or lyrics payloads.
-- [ ] Add privacy disclosures and user-facing permission explanations.
-- [ ] Run unit, UI, and device tests across supported iOS versions.
-- [ ] Conduct TestFlight beta testing where eligible.
-
-**Exit criteria:** Stable beta build with documented known limitations and compliant data handling.
-
-### Phase 6 — CarPlay feasibility outcome (conditional)
-**Estimated duration:** Depends on Apple's requirements  
-**Milestone:** `M6 — Approved CarPlay path or documented no-go`
-
-- [ ] Reconfirm current CarPlay app categories, supported templates, and entitlements.
-- [ ] If eligible, request the appropriate entitlement and follow Apple's approval process.
-- [ ] Design only approved, low-distraction interactions using supported templates.
-- [ ] Test on Apple's CarPlay simulator and, when authorized, compatible hardware.
-- [ ] Verify the app never relies on a custom lyrics-scrolling head-unit interface.
-- [ ] If ineligible, document the result and keep the product iPhone-first.
-
-**Exit criteria:** An approved, compliant CarPlay feature **or** a clearly documented decision not to ship CarPlay support.
-
-### Phase 7 — Release and maintenance
-**Estimated duration:** 1–2 weeks, after validation  
-**Milestone:** `v1.0`
-
-- [ ] Finalize app icon, screenshots, onboarding, and store description.
-- [ ] Complete licensing and provider attribution requirements.
-- [ ] Review Apple App Store policies and privacy disclosures.
-- [ ] Verify error recovery, memory usage, battery use, and accessibility.
-- [ ] Tag release, publish changelog, and document supported music sources.
-- [ ] Establish bug triage, dependency updates, and regression tests.
-
-**Exit criteria:** iPhone app is ready for submission; CarPlay claims reflect only approved, implemented features.
-
-## 8. Timeline overview
-
-| Week | Target | Deliverable |
-|---|---|---|
-| 1 | Feasibility | Provider and CarPlay decisions |
-| 2 | Foundation | Mocked SwiftUI app |
-| 3–4 | Playback | Live now-playing metadata |
-| 5–6 | Lyrics | Licensed lyric lookup and display |
-| 7–8 | Sync | Timed highlighting and auto-scroll |
-| 9 | Hardening | Cache, privacy, tests, beta |
-| 10+ | Conditional | CarPlay-approved features, release preparation |
-
-These are **planning estimates**, not guaranteed dates. Provider access, licensing, and Apple approvals can materially change the schedule.
-
-## 9. Suggested data models
-
-```swift
-struct Track: Identifiable, Equatable {
-    let id: String
-    let title: String
-    let artist: String
-    let album: String?
-    let duration: TimeInterval?
-    let artworkURL: URL?
-    let source: String
-}
-
-struct LyricLine: Identifiable, Equatable {
-    let id: UUID
-    let startTime: TimeInterval?
-    let text: String
-}
-
-enum LyricsState {
-    case idle
-    case loading
-    case available([LyricLine])
-    case unavailable(reason: String)
-    case failed(message: String)
-}
-```
-
-For synced lyrics, `startTime` is required on timed lines; for plain lyrics, it may be `nil`. Track identifiers should include provider context to avoid collisions.
-
-## 10. Core synchronization logic
-
-1. Receive a track identity and reliable playback position.
-2. Fetch matching lyrics, canceling stale requests when the track changes.
-3. Sort timed lines by timestamp, preserving stable ordering for ties.
-4. Select the latest line whose start time is not greater than playback time.
-5. Update the highlighted line when the index changes.
-6. Recompute immediately after seeks or track transitions.
-7. Suspend position-based highlighting if timing or playback position is unavailable.
-
-**Example:** At 42.5 seconds, if lines begin at 39.0 and 44.0 seconds, highlight the 39.0-second line.
-
-**Testing cases:** Beginning/end of track, no timestamps, negative or missing position, repeated timestamps, seek backward, paused playback, rapid track switching, slow provider response, and network loss.
-
-## 11. API and licensing checklist
-
-Before committing to a provider, document:
-
-- [ ] Does its API expose lyrics or only song metadata?
-- [ ] Are full lyrics and synchronized lyrics licensed for third-party display?
-- [ ] Is attribution mandatory?
-- [ ] Are caching, offline access, and public distribution permitted?
-- [ ] Are rate limits and costs suitable for the expected usage?
-- [ ] Does the integration require OAuth or a confidential backend?
-- [ ] Can the provider return reliable playback position?
-- [ ] Are there territorial or commercial-use restrictions?
-
-Never assume that a free endpoint grants redistribution rights. Do not commit API keys, user tokens, copyrighted lyric datasets, or provider-restricted responses.
-
-## 12. Testing strategy
-
-| Level | Focus |
-|---|---|
-| Unit | Timestamp lookup, track matching, parsing, cache expiration |
-| Integration | Provider adapters, auth state, retries, cancellations |
-| UI | Navigation, loading/error states, manual scrolling, accessibility |
-| Device | Playback updates, background/foreground transitions, battery |
-| CarPlay (conditional) | Entitlement, supported templates, safe interactions, device compatibility |
-
-**Minimum quality gate:** All unit tests pass; no committed secrets; build succeeds; critical flows manually verified on at least one physical iPhone.
-
-## 13. GitHub workflow
-
-1. Create an issue with a clear problem statement and acceptance criteria.
-2. Branch from `main` using `feature/<issue>-<description>`, `fix/<issue>-<description>`, or `docs/<description>`.
-3. Commit focused changes with descriptive messages.
-4. Open a pull request linked to the issue.
-5. Run automated checks and request code review.
-6. Squash-merge approved changes into protected `main`.
-7. Close the issue and update the relevant milestone.
-
-**Recommended branch protections:** Require passing iOS build/tests, prevent force-pushes to `main`, require at least one review for team contributions, and enable secret scanning when available.
-
-### Initial GitHub milestones
-
-- `M0 — Feasibility`
-- `M1 — UI Foundation`
-- `M2 — Playback Integration`
-- `M3 — Lyrics Provider`
-- `M4 — Synchronization`
-- `M5 — iPhone Beta`
-- `M6 — CarPlay Decision`
-- `v1.0 — Release`
-
-### Initial issues
-
-- `docs: research CarPlay entitlement and template constraints`
-- `docs: evaluate lyrics licensing providers`
-- `chore: bootstrap SwiftUI Xcode project`
-- `feat: implement Track and LyricLine models`
-- `feat: build mocked now-playing screen`
-- `feat: define MusicSource protocol`
-- `feat: implement authorized Apple Music adapter`
-- `feat: define LyricsProvider protocol`
-- `feat: build lyrics loading and error states`
-- `feat: implement timed lyric highlighting`
-- `test: cover seeking and track transitions`
-- `ci: add macOS build and test workflow`
-
-## 14. Definition of done
-
-A feature is done when it has clear acceptance criteria, is tested, handles expected errors, respects licensing and privacy requirements, and is documented where necessary. A feature depending on unapproved CarPlay capabilities is **not done** simply because it works in a prototype or simulator.
-
-## 15. Future ideas (not committed scope)
-
-- More authorized music providers.
-- User-controlled text sizing, themes, and translations where licensed.
-- Improved multilingual lyric matching.
-- Optional account sync for preferences.
-- Better offline handling where permitted.
-- Passenger-oriented second-screen experiences outside unsupported CarPlay UI.
-- Approved CarPlay integration only if Apple provides an eligible category and suitable templates.
-
-## 16. Getting started
-
-### Requirements
-- A Mac with a compatible version of Xcode.
-- A supported iPhone or iOS simulator.
-- An Apple Developer account for capabilities and distribution that require it.
-- Credentials for any selected authorized music or lyrics APIs.
-
-### Local setup
-
-```bash
-git clone https://github.com/<YOUR_USERNAME>/lyrics-carplay.git
-cd lyrics-carplay
-open LyricsCarPlay.xcodeproj
-```
-
-1. Select a simulator or a provisioned iPhone in Xcode.
-2. Configure your development team and bundle identifier.
-3. Add only the required capabilities for integrations you have validated.
-4. Keep local configuration and credentials out of Git.
-5. Build and run the iPhone app.
-6. Use mock services until live integrations are available.
-
-The repository URL above is a **placeholder**. The committed Xcode project includes a local demo, unit/UI test targets, and a shared scheme. Live playback, a licensed lyrics service, and CarPlay UI are not implemented. Requires Xcode 16+ and iOS 17+. See `docs/testing.md` for build and test commands.
-
-## 17. Contributing
-
-Contributions are welcome for iOS UI, playback adapters, lyrics synchronization, testing, accessibility, documentation, and policy research. Open an issue before making substantial architectural changes. All contributions must respect provider terms, copyright, Apple platform restrictions, and driver safety.
-
-## 18. License
-
-Choose and add an appropriate software license before accepting outside contributions. A software license does **not** grant rights to third-party song lyrics, album art, or music-provider data.
-
----
-
-**Guiding principle:** Ship a reliable, legal, accessible iPhone lyrics experience first. Treat CarPlay support as a separately validated platform capability, not a promised feature.
+Create a Spotify developer application with authorized test accounts and a public client ID. Configure an owned HTTPS redirect URI, matching `SPOTIFY_AUTH_HOST`, an HTTPS AASA `webcredentials` association, and Associated Domains provisioning using the optional Spotify entitlement files. Native HTTPS browser callbacks require **iOS 17.4+**. Select Spotify and Connect Spotify in Settings. No client secret belongs in the app or xcconfig. The Web API provider cannot control playback or synchronize Spotify recordings with lyrics. See [complete setup and capability limits](docs/MUSIC_PROVIDERS.md) and [Spotify setup](docs/spotify-setup.md).
+
+Demo and local LRC need no API. Production lyrics need separate licensing, matching, retention and system-surface permission. Provider secrets belong in an authorized backend or injected secure credential source, not distributed configuration. See [backend development](backend/README.md).
+
+## Widget and Live Activity setup
+
+After signed App Group configuration, run Demo and add **Lyrics snapshot** from the supported iPhone widget gallery (Home Screen / Today View where offered). It supports `systemSmall`; it is not a Lock Screen accessory-family widget. No stored snapshot shows an unavailable state rather than fabricated demo data.
+
+With Demo selected, open Now Playing, then Settings > CarPlay > Start Live Activity. Use End Live Activity to dismiss. Live Activities must be allowed by the device and system settings. Lock Screen and supported Dynamic Island layouts are implemented. Pausing and track changes update content; leaving the active scene redacts/suspends lyrics and freshness expiry is a fallback. Imported/API lyrics without explicit sharing permission remain off these surfaces.
+
+Add/select the widget in a supported CarPlay widget configuration and inspect Dashboard activities using a compatible environment. This selection, physical App Group access, real Lock Screen/Dynamic Island rendering, and CarPlay rendering remain manual checks. Widget reloads are requests, not scheduled per-line delivery. ActivityKit grants no continuous background runtime. See [system-surface design, setup and limits](docs/WIDGETS_AND_LIVE_ACTIVITIES.md).
+
+## CarPlay simulation and real devices
+
+Apple documents **Simulator > I/O > External Displays > CarPlay** for the standard iOS Simulator. The separate shared **CarPlay Simulator** project scheme is a simulator-only template navigation prototype, not a head-unit lyric implementation. Neither the scheme nor compilation proves the menu was available or exercised. The environment inspector attempts public accessibility automation and explicitly records an unverified result when access is unavailable.
+
+Apple also distributes a **standalone CarPlay Simulator** in Additional Tools for Xcode; it connects to a real USB iPhone. Xcode 27 adds a Device Hub path. Package compatibility, exact verified menu status and installation steps are recorded in [CarPlay simulator instructions](docs/carplay-simulator.md). No Additional Tools package, Device Hub session or vehicle was exercised in this session.
+
+Use a signed physical iPhone and supported vehicle/head unit for final validation, preferably wireless CarPlay so Xcode debugging can remain connected. No production CarPlay category entitlement is requested by this app. Widget/Live Activity support is separate from the legacy simulator-only audio-category template scene.
+
+## Parked video and AirPlay limits
+
+Park safely, connect to a manufacturer-supported video-compatible CarPlay vehicle, open YouTube on iPhone and start the chosen video there. Only if YouTube offers an appropriate AirPlay option and the vehicle supports it should you select that display. The OS and vehicle enforce availability; output can stop or become audio-only. This app cannot route YouTube's separate session, detect authoritative parked eligibility, enable unsupported vehicles or override restrictions. It does not embed, scrape, download, intercept or mirror YouTube. No video entitlement is added. See [official API research and manual checks](docs/parked-video.md).
+
+## Testing, known issues and roadmap
+
+[Integration verification](docs/INTEGRATION_TESTING.md) separates automated evidence from mocked services and unverified system/account behavior. [Testing guide](docs/testing.md) covers regression and manual checks. [Architecture](docs/architecture.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [platform limitations](docs/CARPLAY_LIMITATIONS.md) describe the existing design.
+
+Remaining work: signed App Group/device validation; live Apple Music and Spotify account tests; widget and Live Activity rendering/latency measurement on iOS 26+ CarPlay; Instruments battery/leak profiling; accessibility checks; licensed production lyric sources and policy review. Accurate synchronization is foreground iPhone behavior. Per-line CarPlay updates, universal video compatibility, App Store approval and production service availability are not promised.
+
+Next development phase: execute the hardware/account matrix and record observations before expanding integrations or preparing TestFlight. Release gates are tracked in [release checklist](docs/release-checklist.md).

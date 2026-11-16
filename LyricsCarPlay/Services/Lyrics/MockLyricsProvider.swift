@@ -10,6 +10,7 @@ struct MockLyricsProvider: LyricsProvider {
             LyricLine(startTime: 15, text: "Hear the rhythm lead the way"),
             LyricLine(startTime: 20, text: "Let the quiet melody flow"),
             LyricLine(startTime: 25, text: "There is room for us to grow")
-        ], attribution: "Original demonstration lyrics created for this project.", cacheUntil: nil)
+        ], attribution: "Original demonstration lyrics created for this project.", cacheUntil: nil,
+           surfaceSharingUntil: Date().addingTimeInterval(3_600))
     }
 }

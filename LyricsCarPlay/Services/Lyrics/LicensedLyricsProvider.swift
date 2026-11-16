@@ -13,10 +13,12 @@ struct LicensedLyricsProvider: LyricsProvider {
 
     private let endpoint: URL?
     private let client: any HTTPClient
+    private let credentials: (any LyricsAPICredentials)?
 
-    init(endpoint: URL? = nil, client: any HTTPClient = URLSessionHTTPClient()) {
+    init(endpoint: URL? = nil, client: any HTTPClient = URLSessionHTTPClient(), credentials: (any LyricsAPICredentials)? = nil) {
         self.endpoint = endpoint
         self.client = client
+        self.credentials = credentials
     }
 
     func lyrics(for track: Track) async throws -> LyricsDocument? {
@@ -32,6 +34,17 @@ struct LicensedLyricsProvider: LyricsProvider {
         guard let url = components.url else { throw ConfigurationError.invalidEndpoint }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let credentials {
+            let token: String?
+            do { token = try await credentials.bearerToken() }
+            catch is CancellationError { throw CancellationError() }
+            catch { throw LyricsProviderError.authorizationRequired }
+            // CRLF is one Swift Character; inspect bytes to reject every control/whitespace byte.
+            guard let token, !token.isEmpty, token.utf8.allSatisfy({ (33...126).contains($0) }) else {
+                throw LyricsProviderError.authorizationRequired
+            }
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         let data: Data
         let response: HTTPURLResponse
         do { (data, response) = try await client.data(for: request) }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct WelcomeView: View {
-    @State private var selection: MusicApp = .spotify
+    @State private var selection: MusicApp = .demo
     let continueWith: (MusicApp) -> Void
     var body: some View {
         NavigationStack {
@@ -14,7 +14,7 @@ struct WelcomeView: View {
                     }
                 }
                 Section("What is available") {
-                    Text("Spotify provides current-track information and playback controls. Spotify lyrics are unavailable in this app.")
+                    Text("Spotify offers authorized, read-only Web API playback metadata after setup. Spotify lyrics are unavailable in this app.")
                     Text("Timed lyrics work with the original demo and with separately licensed, permitted sources.")
                     Text("Watch video only while parked. AirPlay video output requires a compatible vehicle or display.")
                 }

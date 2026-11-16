@@ -29,7 +29,7 @@ final class AppPreferences: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         hasSeenWelcome = defaults.bool(forKey: "hasSeenWelcome")
-        musicApp = MusicApp(rawValue: defaults.string(forKey: "musicApp") ?? "") ?? .spotify
+        musicApp = MusicApp(rawValue: defaults.string(forKey: "musicApp") ?? "") ?? .demo
         appearance = AppAppearance(rawValue: defaults.string(forKey: "appearance") ?? "") ?? .system
     }
 }

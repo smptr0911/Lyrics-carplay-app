@@ -1,6 +1,6 @@
 import Foundation
 
-enum MusicApp: String, CaseIterable, Identifiable, Sendable {
+enum MusicApp: String, CaseIterable, Identifiable, Hashable, Sendable {
     case spotify, appleMusic, demo
     var id: String { rawValue }
     var title: String {

@@ -11,11 +11,14 @@ struct LyricsCarPlayApp: App {
                 NowPlayingView(model: container.nowPlaying).tabItem { Label("Now Playing", systemImage: "music.note") }
                 ParkedVideoView(prepareForVideo: container.nowPlaying.pausePlayback)
                     .tabItem { Label("Video", systemImage: "play.rectangle") }
-                SettingsView(preferences: container.preferences, model: container.nowPlaying, selectMusicApp: container.selectMusicApp).tabItem { Label("Settings", systemImage: "gear") }
+                SettingsView(preferences: container.preferences, model: container.nowPlaying, surfaces: container.surfaces, selectMusicApp: container.selectMusicApp).tabItem { Label("Settings", systemImage: "gear") }
             }
             .modifier(WelcomeModifier(preferences: container.preferences, selectMusicApp: container.selectMusicApp))
             .modifier(AppAppearanceModifier(preferences: container.preferences))
             .onOpenURL { container.nowPlaying.handleCallback($0) }
+            .onChange(of: scenePhase, initial: true) { _, phase in
+                container.surfaces.setForeground(phase == .active)
+            }
             .task(id: scenePhase) {
                 if scenePhase == .active { await container.nowPlaying.run() }
             }
