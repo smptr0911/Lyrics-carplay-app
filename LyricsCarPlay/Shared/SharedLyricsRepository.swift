@@ -1,4 +1,16 @@
 import Foundation
+import OSLog
+
+/// Timing only: never log tracks, lyric text, provider URLs, credentials or App Group paths.
+enum LyricsSurfaceDiagnostics {
+    private static let logger = Logger(subsystem: "LyricsCarPlay", category: "SurfaceTiming")
+    static func record(_ event: String, snapshot: SharedLyricsSnapshot) {
+        #if DEBUG
+        let age = max(0, Date().timeIntervalSince(snapshot.updatedAt))
+        logger.debug("\(event, privacy: .public) snapshot age seconds=\(age, privacy: .public)")
+        #endif
+    }
+}
 
 protocol SharedLyricsRepository: Sendable {
     func load() async throws -> SharedLyricsSnapshot?

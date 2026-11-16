@@ -19,6 +19,7 @@ struct LyricsTimelineProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<LyricsEntry>) -> Void) {
         Task {
             let entry = await currentEntry()
+            LyricsSurfaceDiagnostics.record("widget-timeline-read", snapshot: entry.snapshot)
             var entries = [entry]
             if entry.snapshot.expiresAt > entry.date {
                 let expiry = entry.snapshot.expiresAt

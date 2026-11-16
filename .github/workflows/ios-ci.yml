@@ -22,6 +22,11 @@ jobs:
           python3 scripts/inspect_apple_sdk.py
       - name: Validate project structure
         run: python3 scripts/validate_project.py
+      - name: Inspect actual development environment
+        run: |
+          set -o pipefail
+          mkdir -p .build/logs
+          python3 scripts/inspect_development_environment.py --probe-simulator-menu 2>&1 | tee .build/logs/environment.log
       - name: Run simulator unit and UI tests
         shell: bash
         run: |
@@ -50,6 +55,11 @@ jobs:
           set -o pipefail
           mkdir -p .build/logs
           xcodebuild build -project LyricsCarPlay.xcodeproj -scheme LyricsCarPlay -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tee .build/logs/device-release.log
+      - name: Run Clang static analyzer
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild analyze -project LyricsCarPlay.xcodeproj -scheme LyricsCarPlay -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tee .build/logs/analyze.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:

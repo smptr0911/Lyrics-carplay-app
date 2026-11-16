@@ -32,6 +32,32 @@ final class LyricsSurfaceTests: XCTestCase {
             status: .ready, updatedAt: date ?? now, expiresAt: (date ?? now).addingTimeInterval(5))
     }
 
+    actor UnavailableRepository: SharedLyricsRepository {
+        func load() throws -> SharedLyricsSnapshot? { throw LyricsSharingError.groupUnavailable }
+        func save(_ snapshot: SharedLyricsSnapshot) throws { throw LyricsSharingError.groupUnavailable }
+        func clear() { }
+    }
+
+    func testAppGroupFailureDoesNotBlockActivityLifecycleOrPretendWidgetReloaded() async {
+        let activity = ActivityClient()
+        var reloads = 0
+        let controller = LyricsSurfaceController(repository: UnavailableRepository(), activity: activity,
+            reloadWidget: { reloads += 1 })
+        controller.setForeground(true)
+        controller.receive(snapshot())
+        controller.startActivity()
+        await controller.waitForPendingUpdates()
+        XCTAssertEqual(activity.starts.count, 1)
+        XCTAssertEqual(reloads, 0)
+        XCTAssertTrue(controller.message.contains("App Group"))
+        controller.receive(snapshot("next"))
+        await controller.waitForPendingUpdates()
+        XCTAssertEqual(activity.updates.last?.trackID, "next")
+        controller.endActivity()
+        await controller.waitForPendingUpdates()
+        XCTAssertFalse(activity.hasActivity)
+    }
+
     func testActivityStartsOnlyByRequestUpdatesTrackAndPauseAndEnds() async {
         let activity = ActivityClient()
         let repository = Repository()

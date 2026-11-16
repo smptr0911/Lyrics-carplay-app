@@ -7,6 +7,9 @@ final class NowPlayingLifecycleTests: XCTestCase {
     final class Source: MusicSource {
         let identifier: String
         var position: TimeInterval = 0
+        var activations = 0
+        var deactivations = 0
+        var onActivate: (() -> Void)?
         var authorization: MusicAuthorization { .authorized }
         init(_ identifier: String) { self.identifier = identifier }
         func requestAuthorization() async -> MusicAuthorization { .authorized }
@@ -16,6 +19,8 @@ final class NowPlayingLifecycleTests: XCTestCase {
         }
         func togglePlayback() { }
         func seek(to position: TimeInterval) { self.position = position }
+        func activate() { activations += 1; onActivate?() }
+        func deactivate() { deactivations += 1 }
     }
 
     struct ImmediateProvider: LyricsProvider {
@@ -23,6 +28,22 @@ final class NowPlayingLifecycleTests: XCTestCase {
             LyricsDocument(lines: [LyricLine(startTime: 0, text: "First"), LyricLine(startTime: 5, text: "Second")],
                            attribution: "Original test", cacheUntil: nil)
         }
+    }
+
+    func testCancellingForegroundSessionDeactivatesSourceAndReleasesModel() async {
+        let source = Source("lifecycle")
+        let activated = expectation(description: "foreground source activated")
+        source.onActivate = { activated.fulfill() }
+        var model: NowPlayingViewModel? = NowPlayingViewModel(source: source, provider: ImmediateProvider())
+        weak var releasedModel = model
+        let session = Task { [weak model] in await model?.run() }
+        await fulfillment(of: [activated], timeout: 2)
+        session.cancel()
+        await session.value
+        XCTAssertEqual(source.activations, 1)
+        XCTAssertEqual(source.deactivations, 1)
+        model = nil
+        XCTAssertNil(releasedModel)
     }
 
     func testSeekingAndOffsetsUpdateImmediatelyWithoutTimerAndSuppressDuplicates() async {

@@ -85,8 +85,10 @@ final class LyricsSurfaceController: ObservableObject {
             if let repository {
                 do {
                     try await repository.save(snapshot)
+                    LyricsSurfaceDiagnostics.record("shared-save", snapshot: snapshot)
                     if shouldReload {
                         reloadWidget()
+                        LyricsSurfaceDiagnostics.record("widget-reload-request", snapshot: snapshot)
                         policy.lastReloadAt = snapshot.updatedAt
                     }
                     message = "Best effort; system refresh timing varies."
@@ -100,12 +102,17 @@ final class LyricsSurfaceController: ObservableObject {
                 stopRequested = false
                 activityRequested = false
                 await activity.end()
+                LyricsSurfaceDiagnostics.record("activity-end-returned", snapshot: snapshot)
             } else if activity.hasActivity {
                 startRequested = false
                 await activity.update(snapshot)
+                LyricsSurfaceDiagnostics.record("activity-update-returned", snapshot: snapshot)
             } else if startRequested && foreground {
                 startRequested = false
-                do { try activity.start(snapshot) }
+                do {
+                    try activity.start(snapshot)
+                    LyricsSurfaceDiagnostics.record("activity-start-returned", snapshot: snapshot)
+                }
                 catch { activityRequested = false; message = "Live Activity could not start. Check system Live Activities settings." }
             } else {
                 // Honor dismissal by the user or the system: never automatically re-request.
