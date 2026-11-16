@@ -16,6 +16,29 @@ test('caller run-name agrees with the persisted attempt key', () => {
   assert.ok(source.includes('run-name: "PR agent | ${{ github.event.pull_request.number }} | ${{ github.event.pull_request.head.sha }}"'));
 });
 
+test('installation can keep PR inference paused until live testing is approved', () => {
+  assert.ok(source.includes("vars.PR_AGENT_ENABLED == 'true' &&"));
+});
+
+test('publication has no GitHub App credential dependency', () => {
+  for (const name of ['pr-agent.md', 'pr-agent.lock.yml', 'ci-repair.md', 'ci-repair.lock.yml', 'pr-automation.yml']) {
+    const text = readFileSync(join(__dirname, '../workflows', name), 'utf8');
+    assert.ok(!text.includes('CI_REPAIR_APP_'), `${name} must use scoped GITHUB_TOKEN publication`);
+  }
+});
+
+test('safe dispatch is restricted to the three validation workflows and exact repair refs', () => {
+  for (const name of ['pr-agent.md', 'ci-repair.md']) {
+    const text = readFileSync(join(__dirname, '../workflows', name), 'utf8');
+    const dispatch = text.match(/  dispatch-workflow:\n([\s\S]*?)(?=\n  [a-z-]+:)/);
+    assert.ok(dispatch, `${name} must explicitly validate published candidates`);
+    assert.ok(dispatch[1].includes('workflows: [backend-ci, ios-ci, pr-checks]'));
+    assert.ok(dispatch[1].includes('max: 3'));
+    assert.ok(dispatch[1].includes('allowed-refs: ["'));
+    assert.ok(!dispatch[1].includes('*'), 'ref scope must be exact, not a branch wildcard');
+  }
+});
+
 test('caller permits every scope required by the generated reusable jobs', () => {
   const lock = readFileSync(join(__dirname, '../workflows/pr-agent.lock.yml'), 'utf8');
   const caller = source.slice(source.indexOf('  review_and_repair:'));

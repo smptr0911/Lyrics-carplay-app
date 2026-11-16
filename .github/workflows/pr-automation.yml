@@ -11,6 +11,7 @@ concurrency:
 jobs:
   pr_gate:
     if: >-
+      vars.PR_AGENT_ENABLED == 'true' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       !startsWith(github.event.pull_request.head.ref, 'pr-fix/') &&
       !startsWith(github.event.pull_request.head.ref, 'ci-repair/')
@@ -79,11 +80,10 @@ jobs:
     if: needs.pr_gate.outputs.eligible == 'true'
     permissions:
       contents: write
-      actions: read
+      actions: write
       checks: read
       issues: write
       pull-requests: write
     uses: ./.github/workflows/pr-agent.lock.yml
     secrets:
       COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-      CI_REPAIR_APP_PRIVATE_KEY: ${{ secrets.CI_REPAIR_APP_PRIVATE_KEY }}

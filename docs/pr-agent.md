@@ -1,93 +1,83 @@
 # PR review and repair
 
-[pr-automation.yml](../.github/workflows/pr-automation.yml) admits opened, updated,
-reopened and ready-for-review PRs targeting `main`, including drafts, then calls
-the reusable [pr-agent.md](../.github/workflows/pr-agent.md) agent workflow. It accepts only
-same-repository PRs; forks and generated `pr-fix/` or `ci-repair/` branches are
-excluded. The agent reviews the current revision and tests code in gh-aw's Linux
-sandbox. It publishes one advisory COMMENT review, never an approval.
+[pr-automation.yml](../.github/workflows/pr-automation.yml) admits same-repository
+PRs targeting `main`, including drafts, then calls the sandboxed reusable
+[pr-agent.md](../.github/workflows/pr-agent.md) workflow. Forks and generated
+`pr-fix/` or `ci-repair/` branches are rejected. The agent posts an advisory
+COMMENT review and never approves or merges.
 
-For a demonstrated code defect it makes one focused repair attempt. All
-available checks must pass before publication. A candidate becomes a separate
-draft PR from `pr-fix/<PR-number>-<full-SHA>` into the original PR's branch. A
-human reviews and merges that companion PR. Updating the original PR triggers
-CI and a new review; the automation never pushes to its original branch or main.
-It never weakens tests or bypasses review. Simulator tests and device builds
-are explicitly unavailable inside the Linux sandbox; real macOS PR CI must pass.
+For an evidenced code defect it makes one focused attempt, reruns available
+tests, and creates a separate draft companion PR from
+`pr-fix/<PR-number>-<full-SHA>` into the original PR's branch. Three bounded
+safe-output dispatches start the existing backend, macOS/iOS and whitespace
+checks on that repair commit. The whitespace dispatch receives the original
+PR branch as `base_ref`. A human reviews/merges the companion PR; the original
+PR's new commit then triggers fresh checks and review. Tests cannot be weakened.
 
-Read-only admission runs before inference and uses paginated run history plus
-review markers `pr-agent-sha:<full-SHA>` to limit each PR revision to one attempt.
-Reruns and stale heads are rejected; API errors fail closed. Keep review markers
-and run history, especially for crashes before publication. Deleting evidence
-removes historical deduplication guarantees. Each agent execution has a
-20-minute, 35-turn, 100-AIC cap. No workflow waits or retry loops are configured.
+## Credentials and activation
 
-The reviewer uses `COPILOT_GITHUB_TOKEN` for inference and the dedicated App
-only in downstream safe-output jobs to post its COMMENT review and fix PR. This is a custom gh-aw reviewer; GitHub's separate native
-Copilot review product may still be blocked by its account quota. This workflow
-cannot replenish quota, change billing, or guarantee that inference is available.
+No GitHub App is required. `COPILOT_GITHUB_TOKEN` authenticates inference only;
+`GITHUB_TOKEN` handles safe-output reviews, reports, PR creation and scoped CI
+dispatch. The agent repository token remains read-only. See [CI repair setup](ci-repair.md)
+for the GitHub PR-creation setting and validation-dispatch rationale.
 
-Repair publication uses the dedicated GitHub App from [CI repair setup](ci-repair.md).
-The App private key is confined to safe-output/reporting jobs, outside the
-agent. Both settings are required for live publication. Missing App
-configuration leaves a failed Actions run and may prevent issue reporting;
-normal agent artifacts preserve any candidate patch. No CLI token is reused.
+The repository variable `PR_AGENT_ENABLED` must equal `true` for PR inference to
+start. It is kept `false` during setup so publishing the reviewed configuration
+cannot launch another live test without the owner's approval. After one-time
+activation, future eligible PR revisions need no manual invocation. This switch
+does not affect conventional backend/macOS/whitespace CI or main CI repair.
 
-## GitHub App setup
+Native GitHub Copilot review and this custom gh-aw reviewer have different
+entrypoints. This workflow cannot replenish account quota or guarantee provider
+availability. It pins `gpt-6.1-sol`, which the actual failed run's Copilot catalog
+advertised with `/responses` support. Successful inference still needs a live test.
 
-1. Open [the prefilled registration form](https://github.com/settings/apps/new?name=Lyrics-CarPlay-Repair-smptr0911&url=https%3A%2F%2Fgithub.com%2Fsmptr0911%2FLyrics-carplay-app&public=false&webhook_active=false&contents=write&pull_requests=write&issues=write&actions=read&checks=read).
-   Verify the settings and create the private App. Webhooks stay disabled.
-2. Copy its **Client ID** to repository Actions variable `CI_REPAIR_APP_CLIENT_ID`.
-   This is the client ID, not the numeric App ID and not an OAuth client secret.
-3. Generate a private key in the App's settings. Add the entire downloaded PEM
-   as repository Actions secret `CI_REPAIR_APP_PRIVATE_KEY`. Never post the key
-   in a PR, issue, chat, log, or committed file.
-4. Select **Install App** and install on only `Lyrics-carplay-app`. The original
-   setup grants Contents/Issues/Pull requests read/write and Actions/Checks read;
-   no Administration, Workflows, organization, or main-ruleset bypass access.
+## Bounds and safety
 
-## Main protection
+Read-only admission precedes inference. It verifies the current head, blocks
+manual reruns, and checks paginated history plus attributed bot review markers.
+A PR revision gets one attempt even if an earlier run failed before publication.
+API errors fail closed. Preserve run history and `pr-agent-sha:<full-SHA>` review
+markers; deleting evidence removes historical deduplication guarantees.
 
-The versioned [ruleset](../.github/automation/main-ruleset.json) requires a PR,
-one approving human review after the latest push, resolved conversations, and
-up-to-date passing `test`, `simulator-tests`, `device-release-build` and
-`whitespace` checks from GitHub Actions. It blocks force pushes and deletion,
-with no actor bypasses. A solo author needs another human reviewer; the agent
-cannot approve its own work or satisfy that requirement.
+Each agent execution has a 20-minute, 35-turn, 100-AIC cap; detection has its own
+100-AIC cap. Outputs allow one COMMENT review, one draft fix PR, and at most
+three dispatches restricted to the exact candidate ref and the three existing
+validation workflows. Agent workflow dispatch, loops and retry dispatches are
+not allowed. PR code/tests execute only in the sandbox. Xcode results are never
+invented; real dispatched macOS CI must pass before human merge.
 
-An administrator can apply it to the existing ruleset with:
-
-```sh
-gh api --method PUT repos/smptr0911/Lyrics-carplay-app/rulesets/25595818 --input .github/automation/main-ruleset.json
-```
+The [main ruleset](../.github/automation/main-ruleset.json) requires independent
+approval after the latest push and all four existing status checks, without
+actor bypass. The automatic token's PR-creation setting does not grant this
+agent an approval output.
 
 ## Validation
 
 ```sh
-gh aw compile pr-agent --strict --validate
+gh aw compile pr-agent ci-repair --strict --validate --actionlint --shellcheck
 node --test .github/scripts/*.test.cjs
 python3 scripts/validate_project.py
 python3 -m unittest discover -s backend/tests -v
 git diff --check
 ```
 
-Local tests use API doubles; compilation does not prove runtime credentials or
-successful repairs. Controlled live verification uses disposable test PRs and
-must record the exact tested commit, review URL, repair PR, validation results,
-and any unavailable checks. Never merge an intentional regression into main.
+Local tests use API doubles and compiled permission contracts. Compilation is
+not proof of successful inference, PR publication or remote test execution.
 
-### Verification record
+## Verification record
 
 On November 15, 2026, the two owner-approved live runs reached the agent but
-failed before executing review/repair tools. Both resolved `auto` to
-`claude-sonnet-5.5` and received repeated upstream HTTP 502 responses:
+failed before review/repair tools. Both resolved `auto` to `claude-sonnet-5.5`
+and received repeated upstream HTTP 502 responses:
 [implementation run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43777220906),
 [intentional-regression run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43777236071).
-The first run also confirmed that publication lacked a nonempty App client ID.
-No automated review or fix was produced by these runs. The implementation PR's
-backend, whitespace, simulator and unsigned device Release CI checks passed.
+App-based publication also failed because its client ID was empty. No automated
+review or fix was produced. The disposable regression PR was closed without
+merging; the implementation PR's backend, whitespace, real simulator tests and
+unsigned device Release checks passed on the tested revision.
 
-The follow-up source pins `gpt-6.1-sol` for both PR and main-CI repair. That model
-and its `/responses` support were advertised in the failing run's own Copilot
-catalog. Compilation and source review do not establish that the alternate
-model works; live verification remains required after credentials are configured.
+The revised configuration removes the App dependency and pins `gpt-6.1-sol`.
+Its compile/local/security results must be reported separately from live
+results. A new live test, including activation of `PR_AGENT_ENABLED`, requires
+fresh owner approval. Never merge an intentional regression into main.

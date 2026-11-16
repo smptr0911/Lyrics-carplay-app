@@ -8,8 +8,6 @@ on:
     secrets:
       COPILOT_GITHUB_TOKEN:
         required: true
-      CI_REPAIR_APP_PRIVATE_KEY:
-        required: false
 if: >-
   github.event_name == 'pull_request' &&
   github.event.pull_request.base.ref == 'main' &&
@@ -41,14 +39,17 @@ network:
 tools:
   github:
     mode: gh-proxy
+    github-token: ${{ secrets.GITHUB_TOKEN }}
     toolsets: [repos, actions, pull_requests, issues]
 safe-outputs:
+  github-token: ${{ secrets.GITHUB_TOKEN }}
   threat-detection:
     max-ai-credits: 100
-  github-app:
-    client-id: ${{ vars.CI_REPAIR_APP_CLIENT_ID }}
-    private-key: ${{ secrets.CI_REPAIR_APP_PRIVATE_KEY }}
-    repositories: ["${{ github.event.repository.name }}"]
+  dispatch-workflow:
+    workflows: [backend-ci, ios-ci, pr-checks]
+    max: 3
+    target-ref: pr-fix/${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+    allowed-refs: ["pr-fix/${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}"]
   submit-pull-request-review:
     max: 1
     allowed-events: [COMMENT]
@@ -120,9 +121,9 @@ agent skills/plugins, bypass reviews, merge, approve, or enable auto-merge.
    a repair is published until its safe output succeeds. A review is advisory;
    human approval remains required by main's ruleset.
 6. If a patch exists and every available check passes, create a draft companion
-   fix PR. Both reviews and fix publication use the dedicated GitHub App in
-   safe outputs. Report authentication failures as incomplete; never reuse
-   other credentials. Candidate patches remain in the normal run artifacts.
+   fix PR. Reviews and fix publication use GITHUB_TOKEN only through safe
+   outputs. COPILOT_GITHUB_TOKEN is for inference only; never give it repository
+   write scopes or reuse it to publish. Candidate patches remain in run artifacts.
    Recheck current PR head and look for existing branches/PRs, including closed
    ones, before output. Use exactly `pr-fix/<pr-number>-<full-sha>` as head and
    the original PR's branch as base. Include `pr-agent-sha:<full-sha>`, the
@@ -131,3 +132,11 @@ agent skills/plugins, bypass reviews, merge, approve, or enable auto-merge.
    fails or no changes are needed. Never push to the original PR branch or main.
    Human review merges the companion PR into the original branch; its new SHA
    triggers CI and a fresh review. `pr-fix/` branches never trigger repair agents.
+7. After recording a fix PR output, emit exactly one `dispatch_workflow` each
+   for `backend-ci`, `ios-ci` and `pr-checks`, all depending on the PR output's
+   `output_id`. Use the configured companion-fix branch ref. Supply
+   `inputs: {"base_ref": "<original-pr-branch>"}` only for `pr-checks`.
+   These explicit workflow_dispatch calls start the original validation jobs
+   automatically on the candidate commit; they do not require an App or a
+   human to approve GITHUB_TOKEN-created PR event runs. Never dispatch an
+   agent, retry a dispatch, wait for external CI, or claim it passed in this run.
