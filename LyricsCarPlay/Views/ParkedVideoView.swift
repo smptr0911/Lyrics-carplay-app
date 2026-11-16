@@ -15,6 +15,14 @@ struct ParkedVideoView: View {
                         .font(.title2.bold())
                     Text("In a supported parked vehicle, choose the car display using AirPlay. The vehicle and system control whether video can appear on that display.")
                         .foregroundStyle(.secondary)
+                    NavigationLink {
+                        AirPlayGuideView()
+                    } label: {
+                        Label("YouTube and AirPlay guide", systemImage: "airplay.video")
+                    }
+                    .accessibilityIdentifier("airPlayGuide")
+                    Divider()
+                    Text("Play your own video").font(.headline)
                     TextField("HTTPS video URL", text: $model.urlText)
                         .keyboardType(.URL).textInputAutocapitalization(.never)
                         .autocorrectionDisabled().textFieldStyle(.roundedBorder)
@@ -44,7 +52,7 @@ struct ParkedVideoView: View {
                         HStack {
                             VideoRoutePicker().frame(width: 44, height: 44)
                                 .accessibilityLabel("Choose AirPlay display")
-                            Text("Choose a display").font(.subheadline)
+                            Text("Output for this app?s player").font(.subheadline)
                             Spacer()
                             Button("Close video") { model.stop() }
                         }

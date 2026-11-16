@@ -6,7 +6,7 @@ final class PlaybackCoordinator {
     init(source: any MusicSource) { self.source = source }
     func replaceSource(_ source: any MusicSource) {
         self.source.deactivate()
-        if let spotify = self.source as? SpotifyMusicSource { spotify.cancelAuthorization() }
+        self.source.cancelAuthorization()
         self.source = source
     }
     func snapshot() -> PlaybackSnapshot { source.snapshot() }

@@ -8,7 +8,7 @@
 - [x] 소스 전환, 캐시 삭제, 연결 해제, 허용된 외부 재생 경로.
 - [x] UserDefaults의 앱 내 설정 용도를 기록한 앱 privacy manifest.
 - [x] 시뮬레이터 테스트·기기용 Release 컴파일·서버 테스트용 CI.
-- [ ] 실제 Mac에서 Swift·SDK 컴파일과 XCTest/UI 통과 로그 확보.
+- [x] macOS CI에서 Swift·SDK 컴파일과 XCTest/UI 통과 로그 확보. 최신 결과와 미검증 항목은 [통합 검증 기록](INTEGRATION_TESTING.md) 참조.
 - [ ] 배포 Archive에서 앱·Spotify SDK의 privacy manifest와 서명 검증.
 
 ## 기기와 차량 수동 증거
@@ -34,6 +34,6 @@
 
 ## 개인정보 초안의 한계
 
-앱은 자체 광고·분석을 포함하지 않습니다. 테마·음악 앱·온보딩 상태만 기기에 저장하며 토큰과 영상 URL은 영구 저장하지 않습니다. 외부 음악·영상 서비스와 향후 운영 백엔드의 데이터 처리는 별도 확인해야 합니다. 앱 manifest의 앱 자체 무수집 선언을 최종 스토어 개인정보 응답 전체로 간주하지 않습니다.
+앱은 자체 광고·분석을 포함하지 않습니다. 테마·음악 앱·온보딩 상태는 기기에 저장합니다. Spotify Web API 토큰은 기기 전용 Keychain에 저장하며 연결 해제 시 삭제합니다. 허용된 시스템 표면 스냅샷은 App Group 저장소에 저장될 수 있습니다. 영상 URL은 저장하지 않습니다. 외부 음악·영상 서비스와 향후 운영 백엔드의 데이터 처리는 별도 확인해야 합니다. 앱 manifest의 앱 자체 무수집 선언을 최종 스토어 개인정보 응답 전체로 간주하지 않습니다.
 
 [필수 사유 API 설명](https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api)에 따라 앱 UserDefaults 사용을 기록했습니다. Spotify SDK는 자신의 manifest를 포함하며 최종 Archive 보고서에서 함께 검토해야 합니다.

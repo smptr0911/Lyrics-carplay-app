@@ -1,68 +1,46 @@
-# Mac에서 CarPlay 시뮬레이터 실행
+# CarPlay simulator and device validation
 
-## 현재 환경 확인
+Reviewed 2026-11-16. Earlier claims in this file about a locally inspected Xcode 27.2 installation and a particular connected iPhone have been removed: they are not verified evidence for this session. Local authoring is Windows. The macOS CI toolchain and menu-probe result belong in [the integration record](INTEGRATION_TESTING.md).
 
-이 프로젝트를 확인한 환경은 다음과 같습니다.
+## Standard iOS Simulator external display
 
-- Xcode 27.2 (`27B52`)
-- macOS 27.0.1
-- USB로 연결된 iPhone 14 Pro (`00008120-0012491C3EEB401E`)
-- iPhone 상태: paired이지만 Developer Mode 비활성화
+[Apple's official instructions](https://developer.apple.com/documentation/carplay/using-the-carplay-simulator) describe running an iPhone simulator from Xcode, then choosing **I/O > External Displays > CarPlay** in the Simulator application's menu bar. The article describes an 800 x 480, @2x window, entitlement requirements for CarPlay-category apps, and limitations around real locked-device, Siri and audio testing.
 
-확인 명령:
+The project preserves a **CarPlay Simulator** scheme with a simulator-only template-navigation prototype. Choose that scheme and an installed iPhone simulator, run it, then look for the documented menu. It explores original demo library/detail templates; it does not implement full-screen lyrics, native vehicle video or production playback controls. Physical builds do not enable that scene or its simulator-only audio entitlement.
 
-```bash
-xcode-select -p
-xcodebuild -version
-xcrun simctl list devices available
-xcrun devicectl list devices
+The primary **LyricsCarPlay** scheme builds the app and widget extension. Use that scheme for normal development. A template-preview build does not verify widget selection or Live Activities in CarPlay. In particular, an iOS 18.5 simulator cannot validate iOS 26 CarPlay widget/activity behavior.
+
+Verify the actual menu, rather than assuming the documentation applies to every installed version:
+
+```sh
+python3 scripts/inspect_development_environment.py --probe-simulator-menu
 ```
 
-실제 iPhone을 개발 대상으로 사용하려면 iPhone에서 **Settings → Privacy & Security
-→ Developer Mode**를 켜고 재시동해야 합니다. Xcode가 기기를 표시하더라도 Developer
-Mode가 꺼져 있으면 빌드·디버깅 대상이 될 수 없습니다.
+The script records selected Xcode, SDKs, available runtimes, schemes and resolved signing settings. It opens the verified installed Simulator bundle and attempts the documented menu hierarchy through public macOS accessibility automation. If automation, localization, the menu or a usable UI session is unavailable, it records **UNVERIFIED**. That is not proof the feature is missing. Do not add private defaults flags, invented tool paths or entitlements to manufacture a missing menu. Manually inspect the selected Simulator version and keep a screenshot/result in your test record. The optional probe may need macOS Accessibility/Automation permission; it does not request or grant that permission itself.
 
-시뮬레이터 전용 장면에서 데모 곡 목록과 상세 화면을 탐색할 수 있습니다. 실제
-Spotify·오디오·가사·차량 영상 재생은 이 목록에 연결되어 있지 않습니다.
+## Standalone CarPlay Simulator / Additional Tools
 
-## Xcode 27.2에서 실제 iPhone 연결
+Apple's [CarPlay Developer Guide](https://developer.apple.com/download/files/CarPlay-Developer-Guide.pdf) documents the separate Mac app in the **Hardware** folder of **Additional Tools for Xcode**. Unlike the standard iOS Simulator display, it connects to a real USB iPhone.
 
-Apple의 [CarPlay Simulator 문서](https://developer.apple.com/documentation/carplay/using-the-carplay-simulator)와
-[Xcode 27.2 Release Notes](https://developer.apple.com/documentation/xcode-release-notes/xcode-27_2-release-notes)를
-기준으로, Device Hub 방식은 **USB로 연결된 실제 iPhone을 CarPlay 소스로 사용하는
-흐름**입니다. iOS Simulator를 Device Hub의 실제 iPhone 소스로 바꾸는 기능은 아닙니다.
+1. Sign in to [Apple Developer More Downloads](https://developer.apple.com/download/all/?q=Additional%20Tools%20for%20Xcode), locate Additional Tools for the intended Xcode generation and read its release notes/system requirements. Apple's public CarPlay material documents the package, but the authenticated listing and a package installation were unavailable to this session.
+2. For the new iOS 26 CarPlay widget/activity experience, use an iOS 26+ iPhone and a compatible modern Additional Tools package; the iOS 18.5 CI runtime cannot establish this compatibility. Additional Tools for Xcode 26 is a documented generation associated with that experience. Do not assume that package runs on every Mac or is compatible with Xcode 16.4. **No exact Additional Tools build/package compatibility was verified here.**
+3. Download and mount the selected disk image. Locate **CarPlay Simulator** in **Hardware** and launch that app from the actual downloaded location (or a location you copy it to). No fixed `/Applications` installation path is required or asserted.
+4. Connect and unlock the iPhone over USB, trust the Mac and follow the tool's connection UI. Install the signed app from Xcode first; Developer Mode is required for development builds. Verify the actual tool/iOS pairing before collecting results.
+5. Inspect supported display configurations and CarPlay widgets/activities, then repeat on physical vehicle/head-unit hardware. Account permissions, provisioning and vehicle support remain independent checks.
 
-1. iPhone의 암호를 해제하고 Mac을 신뢰한 뒤 Developer Mode를 켭니다.
-2. Xcode에서 `LyricsCarPlay` 스킴과 연결된 iPhone을 선택합니다.
-3. Signing & Capabilities에서 본인의 Team과 등록된 Bundle Identifier를 확인합니다.
-4. `⌘R`로 일반 iPhone 앱을 먼저 설치·실행합니다.
-5. Xcode 27.2의 Device Hub에서 연결된 iPhone을 선택하고 제공되는 CarPlay
-   연결/디스플레이 세션을 시작합니다. 설치된 Xcode에서 해당 항목이 표시되지 않으면
-   프로젝트 설정으로 메뉴를 만들거나 entitlement를 우회할 수 없습니다.
+For Xcode 27, Apple's guide also documents **Device Hub**: select the USB iPhone, then choose CarPlay Simulator from Device. This path was not exercised here and is not claimed to exist in Xcode 16.4. Apple's WWDC26 session directs video developers to the standalone Additional Tools simulator. These version-specific paths must not be conflated.
 
-현재 프로젝트는 실제 기기 빌드에 CarPlay Scene과 entitlement를 포함하지 않습니다.
-Apple의 category-specific CarPlay 승인이 없는 상태에서 이를 임의로 추가하지 않습니다.
-따라서 승인 전에는 위 절차로 일반 iPhone 동작만 검증할 수 있습니다.
+## Real iPhone and vehicle
 
-## 전통적인 Simulator 방식
+Configure your own signing team, app/extension IDs and App Group before installing. Use the normal **LyricsCarPlay** scheme. No production CarPlay app-category entitlement is added for widgets, Live Activities or the AirPlay guide. Native category/template integration would require separate eligibility and Apple approval.
 
-전통적인 방식은 iOS Simulator에서 앱을 실행한 뒤 Simulator 메뉴의
-`I/O → External Displays → CarPlay`를 여는 것입니다. Xcode 27.2 설치 환경에서는
-이 메뉴가 표시되지 않을 수 있으며, 이 경우 Device Hub의 실제 iPhone 흐름과
-혼동하지 마십시오. 해당 메뉴가 필요하면 Apple이 지원하는 호환 Xcode/macOS
-조합을 별도 개발 환경에서 사용해야 합니다.
+Use a compatible vehicle or powered aftermarket head unit. Apple recommends wireless CarPlay where possible so an iPhone can stay connected to Xcode for debugging. Test locked/unlocked behavior, audio interruptions, permissions, physical presentation and actual timing; a simulator is not the sole acceptance environment. Video additionally requires manufacturer-supported parked video and enforcement by iOS/vehicle. The app never infers parked eligibility or provides an override.
 
-메뉴가 표시되는 환경에서는 다음 순서로 확인합니다.
+## Evidence status
 
-1. `CarPlay Simulator` 스킴과 iPhone Simulator를 선택해 Run 합니다.
-2. `I/O → External Displays → CarPlay`를 엽니다.
-3. CarPlay에서 Lyrics CarPlay를 열어 Open Road 선택·상세 화면·뒤로 가기를 확인합니다.
-4. `python3 scripts/validate_project.py --xcode`로 프로젝트 검증을 실행합니다.
+- Standard external-display menu: public accessibility automation verified **I/O > External Displays > CarPlay** on the CI runner's selected Xcode 16.4 Simulator. Automated menu existence does not mean a CarPlay session/presentation was tested. See the exact environment evidence in the integration record.
+- Standalone Additional Tools simulator and Xcode 27 Device Hub: not installed or exercised here; exact package compatibility unverified.
+- Signed iPhone, CarPlay widget selection/rendering, Dashboard Live Activity, vehicle AirPlay output: not exercised here.
+- App/extension builds, unit/UI tests and source/repository checks: see [integration verification](INTEGRATION_TESTING.md).
 
-Info-Simulator.plist와 CarPlay-Simulator.entitlements는 시뮬레이터 SDK 조건에서만 적용합니다. 장면 소스·테스트도 시뮬레이터 전용입니다. 실제 기기·Archive는 기존 iPhone 설정을 사용합니다. 오디오 entitlement는 템플릿 탐색용이며 Apple 승인을 의미하지 않습니다.
-
-Windows 구조 검증은 통과했습니다. Xcode 컴파일과 CarPlay 창 실행은 아직 미검증입니다.
-
-- [장면 구성](https://developer.apple.com/documentation/carplay/displaying-content-in-carplay)
-- [권한·시뮬레이터](https://developer.apple.com/documentation/carplay/requesting-carplay-entitlements)
-- [도구](https://developer.apple.com/carplay/)
+[CarPlay developer overview](https://developer.apple.com/carplay/) and [WWDC26 simulator discussion](https://developer.apple.com/videos/play/wwdc2026/212/) provide the official version-specific context.

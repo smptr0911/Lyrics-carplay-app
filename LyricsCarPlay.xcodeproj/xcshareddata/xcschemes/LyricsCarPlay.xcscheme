@@ -20,6 +20,9 @@
                ReferencedContainer = "container:LyricsCarPlay.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES">
+            <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="EF16B89DBA658442C4BF6C6E" BuildableName="LyricsWidgets.appex" BlueprintName="LyricsWidgets" ReferencedContainer="container:LyricsCarPlay.xcodeproj"/>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

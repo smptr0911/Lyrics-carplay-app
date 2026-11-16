@@ -1,3 +1,5 @@
+> Current primary integration: [Music providers and secure Spotify Web API setup](MUSIC_PROVIDERS.md). The App Remote/custom-scheme instructions below are legacy reference; they do not configure the new HTTPS/PKCE flow. Demo is the fresh-install default.
+
 # Spotify 개발자 앱 생성부터 실제 연결까지
 
 먼저 확정할 공개 정보는 앱 이름, iOS 번들 ID, Spotify Client ID입니다. Client Secret이나 로그인 토큰은 제공하거나 앱에 넣지 않습니다.

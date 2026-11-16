@@ -4,19 +4,25 @@ import Foundation
 struct LyricsAPIResponse: Decodable {
     struct Line: Decodable {
         let startTime: TimeInterval?
+        let endTime: TimeInterval?
         let text: String
     }
     let trackID: String
     let attribution: String
     let lines: [Line]
     let cacheUntil: Date?
+    let surfaceSharingUntil: Date?
 
     func document(for track: Track) throws -> LyricsDocument {
         guard trackID == track.id,
               !attribution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               lines.allSatisfy({ line in
                   !line.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-                  (line.startTime.map { $0.isFinite && $0 >= 0 } ?? true)
+                  (line.startTime.map { $0.isFinite && $0 >= 0 } ?? true) &&
+                  (line.endTime.map { end in
+                      guard let start = line.startTime else { return false }
+                      return end.isFinite && end > start
+                  } ?? true)
               }) else { throw LyricsProviderError.invalidResponse }
         let ordered: [Line]
         if lines.allSatisfy({ $0.startTime != nil }) {
@@ -27,8 +33,11 @@ struct LyricsAPIResponse: Decodable {
         } else {
             ordered = lines
         }
-        return LyricsDocument(lines: ordered.map { LyricLine(startTime: $0.startTime, text: $0.text) },
-                              attribution: attribution, cacheUntil: cacheUntil)
+        return LyricsDocument(lines: ordered.enumerated().map { index, line in
+            LyricLine(id: LyricLine.stableID(namespace: track.identity, value: "api|\(index)|\(line.startTime.map { String(describing: $0) } ?? "nil")|\(line.text)"),
+                      startTime: line.startTime, endTime: line.endTime, text: line.text)
+        },
+                              attribution: attribution, cacheUntil: cacheUntil, surfaceSharingUntil: surfaceSharingUntil)
     }
 }
 

@@ -5,6 +5,10 @@ import SpotifyiOS
 @MainActor
 final class SpotifyMusicSource: NSObject, MusicSource {
     let kind: MusicApp = .spotify
+    let capabilities = MusicProviderCapabilities.spotifyAppRemote
+    private let changes = MusicProviderEvents()
+    func events() -> AsyncStream<MusicProviderEvent> { changes.stream() }
+    func disconnect() async { deactivate(); cancelAuthorization() }
     private(set) var authorization: MusicAuthorization = .notDetermined
     private(set) var statusMessage = "Connect Spotify to see the current track."
     private var current = PlaybackSnapshot(track: nil, state: .stopped, position: nil)
@@ -118,7 +122,9 @@ final class SpotifyMusicSource: NSObject, MusicSource {
     }
 }
 
-extension SpotifyMusicSource: SPTAppRemoteDelegate, SPTAppRemotePlayerStateDelegate {
+// Spotify documents main-thread callbacks, but its Objective-C protocols lack actor annotations.
+// Keep runtime actor checks at that legacy boundary rather than isolating SDK objects off-main.
+extension SpotifyMusicSource: @preconcurrency SPTAppRemoteDelegate, @preconcurrency SPTAppRemotePlayerStateDelegate {
     func appRemoteDidEstablishConnection(_ appRemote: SPTAppRemote) {
         guard selected else { appRemote.disconnect(); return }
         authorization = .authorized
@@ -154,13 +160,16 @@ extension SpotifyMusicSource: SPTAppRemoteDelegate, SPTAppRemotePlayerStateDeleg
         current = PlaybackSnapshot(track: track, state: playerState.isPaused ? .paused : .playing,
                                    position: Double(playerState.playbackPosition) / 1000,
                                    artworkData: trackChanged ? nil : current.artworkData)
+        changes.publish(current)
         if trackChanged {
             remote?.imageAPI?.fetchImage(forItem: item, with: CGSize(width: 400, height: 400)) { [weak self] result, _ in
                 guard let self, self.selected, self.remote?.isConnected == true,
                       self.current.track?.id == track.id, let image = result as? UIImage,
                       let data = image.jpegData(compressionQuality: 0.8), data.count <= 1_000_000 else { return }
                 self.current = PlaybackSnapshot(track: self.current.track, state: self.current.state,
-                                                position: self.current.position, artworkData: data)
+                    position: self.current.position, artworkData: data,
+                    playbackRate: self.current.playbackRate, lastUpdatedAt: self.current.lastUpdatedAt)
+                self.changes.publish(self.current)
             }
         }
         // Do not extrapolate a synthetic timestamp or use these positions for lyric sync.

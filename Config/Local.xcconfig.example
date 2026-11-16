@@ -1,11 +1,20 @@
-// Copy to Local.xcconfig (ignored by Git) and replace this public ID.
-SPOTIFY_CLIENT_ID = YOUR_SPOTIFY_CLIENT_ID
+// Copy to Local.xcconfig (ignored by Git). Demo needs no Spotify/API credentials.
+// Replace these values with your own registered identifiers for signed device builds.
+APP_BUNDLE_IDENTIFIER = com.yourcompany.lyricscarplay
+APP_DEVELOPMENT_TEAM = YOUR_TEAM_ID
+LYRICS_APP_GROUP = group.com.yourcompany.lyricscarplay
+
+// Optional Spotify Web API: public client ID, never a client secret.
+// SPOTIFY_CLIENT_ID = YOUR_SPOTIFY_CLIENT_ID
+// SPOTIFY_REDIRECT_URI = https:/$()/auth.yourdomain.example/spotify/callback
+// SPOTIFY_AUTH_HOST = auth.yourdomain.example
+// APP_ENTITLEMENTS = LyricsCarPlay/Resources/LyricsCarPlay-Spotify.entitlements
+// APP_SIMULATOR_ENTITLEMENTS = LyricsCarPlay/CarPlay/CarPlay-Spotify-Simulator.entitlements
+// Requires your HTTPS domain's matching AASA webcredentials association and provisioning.
 
 // Optional HTTPS endpoint; xcconfig requires a separated URL slash.
 // LYRICS_API_URL = https:/$()/your-host.example/v1/lyrics
 // Debug iOS simulator only, after starting the local server:
 // LYRICS_API_URL = http:/$()/localhost:8787/v1/lyrics
 
-// Set these to your own registered App ID and Apple development team.
-// APP_BUNDLE_IDENTIFIER = com.yourcompany.lyricscarplay
-// DEVELOPMENT_TEAM = YOUR_TEAM_ID
+// Do not place lyric-provider secrets or Spotify client secrets in this file: it is bundled configuration.
