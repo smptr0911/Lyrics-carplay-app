@@ -39,7 +39,8 @@ struct LicensedLyricsProvider: LyricsProvider {
             do { token = try await credentials.bearerToken() }
             catch is CancellationError { throw CancellationError() }
             catch { throw LyricsProviderError.authorizationRequired }
-            guard let token, !token.isEmpty, !token.contains("\r"), !token.contains("\n") else {
+            // CRLF is one Swift Character; inspect bytes to reject every control/whitespace byte.
+            guard let token, !token.isEmpty, token.utf8.allSatisfy({ (33...126).contains($0) }) else {
                 throw LyricsProviderError.authorizationRequired
             }
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

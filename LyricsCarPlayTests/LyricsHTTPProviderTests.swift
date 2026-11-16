@@ -35,7 +35,7 @@ final class LyricsHTTPProviderTests: XCTestCase {
         let second = try await provider.lyrics(for: track)
         XCTAssertEqual(first?.lines.first?.endTime, 2)
         XCTAssertEqual(first?.lines.first?.id, second?.lines.first?.id)
-        for token in [nil, "", "invalid\r\nheader"] as [String?] {
+        for token in [nil, "", "invalid\r\nheader", "invalid\u{0}header", "invalid\theader", "invalid header"] as [String?] {
             do {
                 _ = try await LicensedLyricsProvider(endpoint: URL(string: "https://example.com/lyrics"),
                     client: AuthorizedClient(), credentials: Credentials(token: token)).lyrics(for: track)
