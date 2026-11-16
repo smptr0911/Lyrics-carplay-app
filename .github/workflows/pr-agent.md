@@ -17,6 +17,7 @@ if: >-
   !startsWith(github.event.pull_request.head.ref, 'pr-fix/') &&
   !startsWith(github.event.pull_request.head.ref, 'ci-repair/')
 engine: copilot
+model: gpt-6.1-sol
 env:
   ORIGINAL_PR_BRANCH: ${{ github.event.pull_request.head.ref }}
 strict: true

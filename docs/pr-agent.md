@@ -75,3 +75,19 @@ Local tests use API doubles; compilation does not prove runtime credentials or
 successful repairs. Controlled live verification uses disposable test PRs and
 must record the exact tested commit, review URL, repair PR, validation results,
 and any unavailable checks. Never merge an intentional regression into main.
+
+### Verification record
+
+On November 15, 2026, the two owner-approved live runs reached the agent but
+failed before executing review/repair tools. Both resolved `auto` to
+`claude-sonnet-5.5` and received repeated upstream HTTP 502 responses:
+[implementation run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43777220906),
+[intentional-regression run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43777236071).
+The first run also confirmed that publication lacked a nonempty App client ID.
+No automated review or fix was produced by these runs. The implementation PR's
+backend, whitespace, simulator and unsigned device Release CI checks passed.
+
+The follow-up source pins `gpt-6.1-sol` for both PR and main-CI repair. That model
+and its `/responses` support were advertised in the failing run's own Copilot
+catalog. Compilation and source review do not establish that the alternate
+model works; live verification remains required after credentials are configured.

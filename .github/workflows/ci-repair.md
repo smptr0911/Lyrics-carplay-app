@@ -15,6 +15,7 @@ if: >-
   github.event.workflow_run.head_repository.full_name == github.repository
 strict: true
 engine: copilot
+model: gpt-6.1-sol
 permissions:
   contents: read
   actions: read
