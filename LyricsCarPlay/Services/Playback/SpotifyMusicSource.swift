@@ -5,6 +5,10 @@ import SpotifyiOS
 @MainActor
 final class SpotifyMusicSource: NSObject, MusicSource {
     let kind: MusicApp = .spotify
+    let capabilities = MusicProviderCapabilities.spotifyAppRemote
+    private let changes = MusicProviderEvents()
+    func events() -> AsyncStream<MusicProviderEvent> { changes.stream() }
+    func disconnect() async { deactivate(); cancelAuthorization() }
     private(set) var authorization: MusicAuthorization = .notDetermined
     private(set) var statusMessage = "Connect Spotify to see the current track."
     private var current = PlaybackSnapshot(track: nil, state: .stopped, position: nil)
@@ -154,6 +158,7 @@ extension SpotifyMusicSource: SPTAppRemoteDelegate, SPTAppRemotePlayerStateDeleg
         current = PlaybackSnapshot(track: track, state: playerState.isPaused ? .paused : .playing,
                                    position: Double(playerState.playbackPosition) / 1000,
                                    artworkData: trackChanged ? nil : current.artworkData)
+        changes.publish(current)
         if trackChanged {
             remote?.imageAPI?.fetchImage(forItem: item, with: CGSize(width: 400, height: 400)) { [weak self] result, _ in
                 guard let self, self.selected, self.remote?.isConnected == true,

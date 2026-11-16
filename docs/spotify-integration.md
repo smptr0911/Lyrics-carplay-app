@@ -1,3 +1,5 @@
+> Current primary integration: [Music providers and secure Spotify Web API setup](MUSIC_PROVIDERS.md). The App Remote/custom-scheme instructions below are legacy reference; they do not configure the new HTTPS/PKCE flow. Demo is the fresh-install default.
+
 # Spotify와 음악 앱 선택
 
 검토: 2026-11-12. Settings → Music app에서 Spotify / Apple Music / Demo를 선택합니다. 선택값을 저장하며 기본값은 Spotify입니다. Apple Music은 권한 요청만 구현되어 있습니다. 시뮬레이터에서는 Demo를 사용하세요.

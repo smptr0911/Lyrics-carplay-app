@@ -9,9 +9,9 @@
 
 ## Current implementation and next verification
 
-Product direction: Spotify track information and controls plus parked video take priority. Synchronized lyrics are limited to sources with explicit platform and lyrics permissions. Spotify lyrics remain disabled. See [product decisions](docs/product-decisions.md).
+Current direction (2026-11-16): Apple Music first, then authorized Spotify metadata; synchronized lyrics require a separately permitted provider. Demo is the account-free first-launch experience. Small-widget and Live Activity source implementations are now included in an embedded extension; Apple builds, App Group provisioning and real CarPlay rendering remain unverified. YouTube stays in its own app with an informative AirPlay setup guide. This supersedes the earlier Spotify-first roadmap. See [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [platform limitations](docs/CARPLAY_LIMITATIONS.md).
 
-Implemented code now includes Spotify App Remote, an Apple Music system-player adapter, persisted source selection, onboarding/privacy controls, local demo lyrics, a configurable HTTP lyrics client, an original-fixture development server, AirPlay video, and a simulator-only CarPlay template preview. Account setup, licensed production data, Apple approval, and physical validation are not implied by this code.
+Implemented code now includes primary Spotify Web API/PKCE support, preserved legacy App Remote, an Apple Music system-player adapter, persisted source selection, onboarding/privacy controls, local demo lyrics, a configurable HTTP lyrics client, an original-fixture development server, AirPlay video, and a simulator-only CarPlay template preview. Account setup, licensed production data, Apple approval, and physical validation are not implied by this code.
 
 - [Start directly on Mac through GitHub](docs/mac-start.md)
 - [Mac handoff and build commands](docs/mac-handoff.md)
@@ -27,6 +27,19 @@ python -m unittest discover -s backend/tests -v
 # macOS: simulator tests and unsigned device Release compile
 bash scripts/verify_on_mac.sh
 ```
+
+## Current foundation
+
+The existing project and original three targets are preserved; LyricsWidgets is an additional embedded extension target. Models, protocol-based providers, the SwiftUI lyrics screen, and binary-search synchronization are reused. Demo uses original timestamped lyrics and an injectable monotonic clock. The lyrics screen now shows current/adjacent lines with seek, speed, and offset controls, and supports session-only UTF-8 LRC imports. A pure prepared synchronization engine handles timing and suppresses unchanged line updates. Expand Timing and LRC import in Now Playing to test these controls. `LyricContext` exposes serializable current/adjacent lines for future shared surfaces; it does not persist licensed text or claim a live CarPlay connection.
+
+- [Music providers, secure Spotify setup and matching](docs/MUSIC_PROVIDERS.md)
+- [Architecture](docs/architecture.md)
+- [Current implementation plan](docs/IMPLEMENTATION_PLAN.md)
+- [Widgets, Live Activities, signing and refresh limits](docs/WIDGETS_AND_LIVE_ACTIVITIES.md)
+- [CarPlay limitations and Apple references](docs/CARPLAY_LIMITATIONS.md)
+- [Testing and environment limits](docs/testing.md)
+
+The older detailed checklist below is historical planning; the current implementation plan takes precedence.
 
 ## Implementation checklist
 
@@ -47,7 +60,7 @@ The upstream repository keeps platform workflows separate:
 
 Both branches are based on `main`. Keep platform-specific work on its matching branch, regularly rebase or merge `main`, and open pull requests back to `main` only after the relevant checks pass. The complete ordered checklist is in [Development workflow](docs/development-workflow.md).
 
-The first command validates file/configuration structure only. The second requires an actual iOS simulator build and tests. The default selected source is Spotify. Configure its public Client ID and test on an iPhone, or select Demo for local lyrics previews. A licensed backend, native CarPlay playback, signing and device validation remain explicit tasks. See [Spotify integration and policy constraints](docs/spotify-integration.md).
+The first command validates file/configuration structure only. The second requires an actual iOS simulator build and tests. The default selected source for new installations is Demo; saved choices are preserved. Spotify Web API additionally requires an owned HTTPS callback domain and matching associated-domain provisioning; follow the provider guide. Demo needs neither. A licensed backend, native CarPlay playback, signing and device validation remain explicit tasks. See [Spotify integration and policy constraints](docs/spotify-integration.md).
 
 ### CarPlay simulator prototype
 

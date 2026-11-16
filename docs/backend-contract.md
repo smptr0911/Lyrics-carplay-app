@@ -25,3 +25,7 @@ Successful response (200, Content-Type: application/json):
 Backend responsibilities: vendor licensing, territorial checks, exact/confident matching, provider attribution, rate limiting, deletion rules, credential storage, authentication, and monitoring without restricted lyric payloads. Test these against the selected provider before enabling live mode.
 
 A runnable demo-only server is available in [backend/README.md](../backend/README.md). It contains only project-authored original lyrics and is not a production vendor integration.
+
+## Optional system-surface permission
+
+The response adapter accepts optional ISO-8601 surfaceSharingUntil. Absence prohibits lyric text in App Group snapshots and ActivityKit regardless of cacheUntil. Only an authorized provider/backend may grant it after reviewing display, attribution and eventual payload cleanup requirements. Existing backend fixtures do not grant it automatically. This is an app-owned contract, not an Apple Music or Spotify lyrics endpoint.

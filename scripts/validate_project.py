@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def validate():
     project = ROOT / "LyricsCarPlay.xcodeproj/project.pbxproj"
     content = project.read_text(encoding="utf-8")
-    definitions = re.findall(r"^\s*([A-F0-9]{24})(?:\s+/\*[^*\n]*(?:\*/))?\s+= ", content, re.M)
+    definitions = re.findall(r"^\t\t([A-F0-9]{24})(?:\s+/\*[^*\n]*(?:\*/))?\s+= ", content, re.M)
     references = set(re.findall(r"\b[A-F0-9]{24}\b", content))
     assert len(definitions) == len(set(definitions)), "Duplicate Xcode IDs"
     assert references == set(definitions), "Unresolved Xcode IDs"
@@ -28,7 +28,7 @@ def validate():
         ("LyricsCarPlayUITests", "128178DD6E58AD69D98310C4"),
     ]:
         body = re.search(
-            phase + r"(?:\s+/\*[^*\n]*\*/)? = \{\n(.*?)\n\t\t\};",
+            phase + r"(?:\s+/\*[^*\n]*\*/)? = \{\n(.*?)\n(?:\t\t|        )\};",
             content,
             re.S,
         ).group(1)
@@ -42,9 +42,32 @@ def validate():
     scene = simulator_info["UIApplicationSceneManifest"]["UISceneConfigurations"]["CPTemplateApplicationSceneSessionRoleApplication"][0]
     assert scene["UISceneDelegateClassName"] == "$(PRODUCT_MODULE_NAME).CarPlaySceneDelegate"
     entitlement_path = "LyricsCarPlay/CarPlay/CarPlay-Simulator.entitlements"
-    assert plistlib.loads((ROOT / entitlement_path).read_bytes()) == {"com.apple.developer.carplay-audio": True}
-    assert content.count('"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "' + entitlement_path + '"') == 2
-    assert not re.search(r"(?<![A-Z_])CODE_SIGN_ENTITLEMENTS =", content), "CarPlay entitlement must remain simulator-only"
+    assert plistlib.loads((ROOT / entitlement_path).read_bytes()) == {
+        "com.apple.developer.carplay-audio": True,
+        "com.apple.security.application-groups": ["$(LYRICS_APP_GROUP)"],
+    }
+    assert content.count('"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "$(APP_SIMULATOR_ENTITLEMENTS)"') == 2
+    base_entitlements = re.findall(r"(?<![A-Z_])CODE_SIGN_ENTITLEMENTS = ([^;]+);", content)
+    assert sorted(base_entitlements) == sorted([
+        '"$(APP_ENTITLEMENTS)"',
+        '"$(APP_ENTITLEMENTS)"',
+        "LyricsWidgets/LyricsWidgets.entitlements",
+        "LyricsWidgets/LyricsWidgets.entitlements",
+    ])
+    for path in ["LyricsCarPlay/Resources/LyricsCarPlay.entitlements", "LyricsWidgets/LyricsWidgets.entitlements"]:
+        assert plistlib.loads((ROOT / path).read_bytes()) == {"com.apple.security.application-groups": ["$(LYRICS_APP_GROUP)"]}
+    extension_info = plistlib.loads((ROOT / "LyricsWidgets/Info.plist").read_bytes())
+    assert extension_info["NSExtension"] == {"NSExtensionPointIdentifier": "com.apple.widgetkit-extension"}
+    assert extension_info["LyricsAppGroup"] == "$(LYRICS_APP_GROUP)"
+    assert 'productType = "com.apple.product-type.app-extension";' in content
+    assert 'dstSubfolderSpec = 13;' in content, "Missing embedded extension phase"
+    phase = re.search(r"27FF630BC0C5C708FC7B31A5 = \{(.*?)\n        \};", content, re.S).group(1)
+    for path in list((ROOT / "LyricsWidgets").glob("*.swift")) + list((ROOT / "LyricsCarPlay/Shared").glob("*.swift")):
+        key = hashlib.sha1(("widget-build:" + path.relative_to(ROOT).as_posix()).encode()).hexdigest()[:24].upper()
+        assert key in phase, f"Missing extension source membership: {path.name}"
+    for info in (device_info, simulator_info):
+        assert info["NSSupportsLiveActivities"] is True
+        assert info["LyricsAppGroup"] == "$(LYRICS_APP_GROUP)"
     assert content.count('"INFOPLIST_FILE[sdk=iphonesimulator*]" = "LyricsCarPlay/Resources/Info-Simulator.plist"') == 2
     ET.parse(ROOT / "LyricsCarPlay.xcodeproj/xcshareddata/xcschemes/CarPlay Simulator.xcscheme")
     privacy = plistlib.loads((ROOT / "LyricsCarPlay/Resources/PrivacyInfo.xcprivacy").read_bytes())
@@ -55,6 +78,8 @@ def validate():
     for info in (device_info, simulator_info):
         assert info["LyricsAPIURL"] == "$(LYRICS_API_URL)"
         assert info["SpotifyClientID"] == "$(SPOTIFY_CLIENT_ID)"
+        assert info["SpotifyRedirectURI"] == "$(SPOTIFY_REDIRECT_URI)"
+        assert info["SpotifyAuthHost"] == "$(SPOTIFY_AUTH_HOST)"
         assert "spotify" in info["LSApplicationQueriesSchemes"]
         assert info["CFBundleURLTypes"][0]["CFBundleURLSchemes"] == ["lyrics-carplay-spotify"]
     pins = json.loads((ROOT / "LyricsCarPlay.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved").read_text())

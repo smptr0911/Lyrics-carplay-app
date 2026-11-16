@@ -14,6 +14,11 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Record Xcode and SDK versions
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun swift --version
       - name: Validate project structure
         run: python3 scripts/validate_project.py
       - name: Run simulator unit and UI tests
@@ -32,6 +37,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Record Xcode and SDK versions
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun swift --version
       - name: Compile unsigned device Release build
         shell: bash
         run: |

@@ -1,3 +1,5 @@
+> Current implementation: [Music providers and HTTPS/PKCE setup](MUSIC_PROVIDERS.md). The older provider notes below are historical; Demo is the default and App Remote is retained as legacy code.
+
 # Integration status
 
 - MockMusicSource and MockLyricsProvider provide a local, original 30-second demo.
