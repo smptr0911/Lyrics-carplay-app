@@ -15,16 +15,14 @@ struct ParkedVideoView: View {
                         .font(.title2.bold())
                     Text("In a supported parked vehicle, choose the car display using AirPlay. The vehicle and system control whether video can appear on that display.")
                         .foregroundStyle(.secondary)
-                    DisclosureGroup("YouTube through AirPlay setup") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("1. Park safely and check that your vehicle supports AirPlay video, not just CarPlay audio.")
-                            Text("2. Open YouTube on your iPhone and choose a video there.")
-                            Text("3. If YouTube offers AirPlay for that video, select your compatible vehicle display using its playback controls.")
-                            Text("If the display is unavailable, check the vehicle's instructions. Availability depends on YouTube, the video, iOS, and the vehicle. This app cannot enable a route or override driving restrictions.")
-                                .font(.footnote).foregroundStyle(.secondary)
-                            Link("Open YouTube", destination: URL(string: "https://www.youtube.com/")!)
-                        }.frame(maxWidth: .infinity, alignment: .leading)
+                    NavigationLink {
+                        AirPlayGuideView()
+                    } label: {
+                        Label("YouTube and AirPlay guide", systemImage: "airplay.video")
                     }
+                    .accessibilityIdentifier("airPlayGuide")
+                    Divider()
+                    Text("Play your own video").font(.headline)
                     TextField("HTTPS video URL", text: $model.urlText)
                         .keyboardType(.URL).textInputAutocapitalization(.never)
                         .autocorrectionDisabled().textFieldStyle(.roundedBorder)
@@ -54,7 +52,7 @@ struct ParkedVideoView: View {
                         HStack {
                             VideoRoutePicker().frame(width: 44, height: 44)
                                 .accessibilityLabel("Choose AirPlay display")
-                            Text("Choose a display").font(.subheadline)
+                            Text("Output for this app?s player").font(.subheadline)
                             Spacer()
                             Button("Close video") { model.stop() }
                         }

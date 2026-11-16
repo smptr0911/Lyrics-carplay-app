@@ -85,6 +85,10 @@
 		1FAC321AE48D8634AA94FE69 = {isa = PBXBuildFile; fileRef = 5D90BF715B6C977A69670099; };
 		436A83B6260D81532CAE1CE3 = {isa = PBXBuildFile; fileRef = D5726E4F851AAD9216186B21; };
 		0B7E4FE37EC537BE323E353B = {isa = PBXBuildFile; fileRef = 44E6D6D7109AB65319C29EA2; };
+		82EEB04979C2DC9A4FA90E85 /* LyricsCarPlay/Models/AirPlayCompatibilityInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7322B7EB84F37F834C98A1A9; };
+		FA3FB2658C58C3ED406B2B53 /* LyricsCarPlay/ViewModels/AirPlayHelpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F30082E8F2E4C659893DB1C; };
+		2A317935664C822A9A5B669F /* LyricsCarPlay/Views/AirPlayGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EC0028073DC832017247DAB; };
+		6B7E751B4CA6FEB70E3C1FB2 /* LyricsCarPlayTests/AirPlayHelpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E49B30A40E7F7EF512952CE; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -201,6 +205,10 @@
 		44E6D6D7109AB65319C29EA2 /* LyricsCarPlayTests/SpotifyWebIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LyricsCarPlayTests/SpotifyWebIntegrationTests.swift"; sourceTree = SOURCE_ROOT; };
 		64C4303EFBC0ED04BC75D40D /* LyricsCarPlay/Resources/LyricsCarPlay-Spotify.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LyricsCarPlay/Resources/LyricsCarPlay-Spotify.entitlements"; sourceTree = SOURCE_ROOT; };
 		961EBCC18E988B53703E50CE /* LyricsCarPlay/CarPlay/CarPlay-Spotify-Simulator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LyricsCarPlay/CarPlay/CarPlay-Spotify-Simulator.entitlements"; sourceTree = SOURCE_ROOT; };
+		7322B7EB84F37F834C98A1A9 /* LyricsCarPlay/Models/AirPlayCompatibilityInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LyricsCarPlay/Models/AirPlayCompatibilityInfo.swift"; sourceTree = SOURCE_ROOT; };
+		0F30082E8F2E4C659893DB1C /* LyricsCarPlay/ViewModels/AirPlayHelpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LyricsCarPlay/ViewModels/AirPlayHelpViewModel.swift"; sourceTree = SOURCE_ROOT; };
+		1EC0028073DC832017247DAB /* LyricsCarPlay/Views/AirPlayGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LyricsCarPlay/Views/AirPlayGuideView.swift"; sourceTree = SOURCE_ROOT; };
+		8E49B30A40E7F7EF512952CE /* LyricsCarPlayTests/AirPlayHelpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LyricsCarPlayTests/AirPlayHelpTests.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -237,6 +245,10 @@
 		B28B7AF69320201D1CF206EB = {
 			isa = PBXGroup;
 			children = (
+				8E49B30A40E7F7EF512952CE /* LyricsCarPlayTests/AirPlayHelpTests.swift */,
+				1EC0028073DC832017247DAB /* LyricsCarPlay/Views/AirPlayGuideView.swift */,
+				0F30082E8F2E4C659893DB1C /* LyricsCarPlay/ViewModels/AirPlayHelpViewModel.swift */,
+				7322B7EB84F37F834C98A1A9 /* LyricsCarPlay/Models/AirPlayCompatibilityInfo.swift */,
 				961EBCC18E988B53703E50CE /* LyricsCarPlay/CarPlay/CarPlay-Spotify-Simulator.entitlements */,
 				64C4303EFBC0ED04BC75D40D /* LyricsCarPlay/Resources/LyricsCarPlay-Spotify.entitlements */,
 				44E6D6D7109AB65319C29EA2 /* LyricsCarPlayTests/SpotifyWebIntegrationTests.swift */,
@@ -484,6 +496,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A317935664C822A9A5B669F /* LyricsCarPlay/Views/AirPlayGuideView.swift */,
+				FA3FB2658C58C3ED406B2B53 /* LyricsCarPlay/ViewModels/AirPlayHelpViewModel.swift */,
+				82EEB04979C2DC9A4FA90E85 /* LyricsCarPlay/Models/AirPlayCompatibilityInfo.swift */,
 				D86E30AD127189BD88B2D7DA /* LyricsCarPlay/Services/Playback/SpotifyWeb/SpotifyWebPlaybackClient.swift */,
 				23421CFA5A4DD39BED16150A /* LyricsCarPlay/Services/Playback/SpotifyWeb/SpotifyWebMusicSource.swift */,
 				67752A1B80F4C5ECA921C357 /* LyricsCarPlay/Services/Playback/SpotifyWeb/SpotifyWebAuthorization.swift */,
@@ -541,6 +556,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6B7E751B4CA6FEB70E3C1FB2 /* LyricsCarPlayTests/AirPlayHelpTests.swift */,
 				0B7E4FE37EC537BE323E353B /* LyricsCarPlayTests/SpotifyWebIntegrationTests.swift */,
 				436A83B6260D81532CAE1CE3 /* LyricsCarPlayTests/MusicProviderEventTests.swift */,
 				1FAC321AE48D8634AA94FE69 /* LyricsCarPlayTests/LyricsMatchingServiceTests.swift */,
