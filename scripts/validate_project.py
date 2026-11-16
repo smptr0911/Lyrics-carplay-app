@@ -107,15 +107,19 @@ def xcode_tests():
         raise RuntimeError("Xcode testing requires macOS and Xcode. Structural validation is not a Swift build.")
     subprocess.run(["plutil", "-lint", str(ROOT / "LyricsCarPlay.xcodeproj/project.pbxproj")], check=True)
     devices = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
+    sdk_version = tuple(int(part) for part in subprocess.check_output(
+        ["xcrun", "--sdk", "iphonesimulator", "--show-sdk-version"], text=True).strip().split(".")[:2])
+    sdk_version = (sdk_version + (0,))[:2]
     candidates = []
     for runtime, group in devices["devices"].items():
         match = re.search(r"\.iOS-(\d+)(?:-(\d+))?", runtime)
         if match and int(match.group(1)) >= 17:
             version = (int(match.group(1)), int(match.group(2) or 0))
-            candidates.extend((version, device) for device in group if device["name"].startswith("iPhone"))
+            if version <= sdk_version:
+                candidates.extend((version, device) for device in group if device["name"].startswith("iPhone"))
     candidates.sort(key=lambda item: item[0], reverse=True)
     if not candidates:
-        raise RuntimeError("Install a compatible iPhone simulator runtime in Xcode first.")
+        raise RuntimeError(f"Install an iPhone runtime between iOS 17 and the selected simulator SDK {sdk_version}.")
     results = ROOT / ".build/logs" / ("tests-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ") + ".xcresult")
     results.parent.mkdir(parents=True, exist_ok=True)
     print(f"Selected simulator: {candidates[0][1]['name']} (iOS {candidates[0][0]})", flush=True)
