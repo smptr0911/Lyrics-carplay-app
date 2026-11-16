@@ -1,6 +1,6 @@
 # Music providers and local lyrics matching
 
-Source implementation is integrated with the existing app, synchronization engine and system-surface pipeline. Swift compilation, XCTest and live-account/device verification remain unrun: this Windows environment has no Xcode or Apple SDK. Structural/grammar checks do not establish API compatibility or real playback behavior.
+Source implementation is integrated with the existing app, synchronization engine and system-surface pipeline. Unsigned device Release compilation is verified in macOS CI on Xcode 16.4, Swift 6.1.2 compiler in the existing Swift 5 language mode, and the iOS 18.5 SDK. All 71 unit tests and four UI tests pass on iOS 18.5 in the same CI run. Live-account authorization and physical-device behavior still require manual verification. The local Windows workspace has no Apple toolchain.
 
 ## Architecture and capabilities
 
@@ -67,4 +67,6 @@ Track identity or relevant metadata changes cancel old lyric work, rematch, prep
 
 New SpotifyWebIntegrationTests, LyricsMatchingServiceTests and MusicProviderEventTests use fake HTTP, token stores and providers. They cover PKCE, bad state/denial, expired and rotating tokens, single-flight refresh, logout races, no playback, nullable progress, pause, one 401 retry, forbidden access, API/token rate limits, offline transport, position expiry/drift, incorrect/ambiguous versions, source info, import removal and metadata-sensitive cache/rematching. Existing synchronization, surface and Demo tests remain in place.
 
-Run `bash scripts/verify_on_mac.sh` on a Mac with a matching SDK. Then test real authorization, Keychain persistence across relaunch, cancellation/source switches, device lock, refresh/revocation, Spotify playback on another account device, Apple Music missing-item cases, and the widget/activity handoff. These signed/live-account checks have not run here. No successful Swift compilation or live integration is claimed by structural or grammar checks.
+Run `bash scripts/verify_on_mac.sh` on a Mac with a matching SDK. Then test real authorization, Keychain persistence across relaunch, cancellation/source switches, device lock, refresh/revocation, Spotify playback on another account device, Apple Music missing-item cases, and the widget/activity handoff. Signed/live-account checks remain manual. The [passing macOS CI run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43941873382) verifies unsigned device Release compilation, 71 unit tests and four UI tests on iOS 18.5; it does not verify account/domain provisioning or real vehicle behavior.
+
+The installed SDK inspection is reproducible with scripts/inspect_apple_sdk.py. The preserved App Remote SDK currently emits actor-isolation migration warnings in Swift 5 mode; full Swift 6 language migration remains a separate task. The primary Web API path does not use that legacy delegate.

@@ -2,7 +2,7 @@
 
 ## Implementation status
 
-The original project had three targets and reusable shared models, but no widget extension, Live Activities, or App Groups. The new embedded LyricsWidgets target preserves those targets. Source and project wiring are implemented; compilation, previews, signing, and CarPlay rendering remain unverified because this Windows workspace has no Xcode, Apple SDK, or Swift compiler.
+The original project had three targets and reusable shared models, but no widget extension, Live Activities, or App Groups. The new embedded LyricsWidgets target preserves those targets. Source and project wiring are implemented. Unsigned device compilation is verified in macOS CI on Xcode 16.4/iOS 18.5. Previews, signing and real CarPlay rendering still require manual validation; this Windows workspace has no local Apple toolchain.
 
 The baseline remains iOS 17 and Swift 5 language mode. The documented supplemental small family uses iOS 18 APIs, guarded for availability, and requires Xcode 16 or newer. iOS 17 retains standard Lock Screen/Dynamic Island presentations. CarPlay widget/Live Activity testing needs iOS 26 or newer and compatible tools/hardware. No new CarPlay entitlement or full-screen interface was added. The old audio entitlement remains simulator-only.
 
@@ -48,4 +48,4 @@ The widget uses systemSmall, semantic colors, default contextual margins, remova
 4. On a signed device verify shared-file access after first unlock. Background/lock the app and check suspended/stale presentation. Reopen and check refreshed state.
 5. Use Apple's CarPlay Simulator from Additional Tools for Xcode with a compatible iPhone, then a physical vehicle. This is distinct from the repository's CPTemplate simulator prototype. Inspect Dashboard activities, widgets, small-family layout, truncation, contrast and background removal. Measure actual update delays without treating observations as guarantees.
 
-LyricsSurfaceTests cover mocked lifecycle, tracks, pause, suspension/resumption, denial/dismissal, coalescing, refresh policy, permissions, expiry, payload bounds, atomic storage and corrupt data. Added Swift tests remain unrun here. Structural validation, OpenStep parsing, and Swift grammar parsing pass; these do not compile Apple APIs. The ten backend tests pass independently.
+LyricsSurfaceTests cover mocked lifecycle, tracks, pause, suspension/resumption, denial/dismissal, coalescing, refresh policy, permissions, expiry, payload bounds, atomic storage and corrupt data. The surface tests now pass as part of the [71-unit/four-UI macOS CI suite](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43941873382). The app and extension compile for unsigned device Release on Xcode 16.4/iOS 18.5. Structural/OpenStep/grammar checks and ten backend tests also pass. Physical App Group provisioning and CarPlay presentation remain unverified.

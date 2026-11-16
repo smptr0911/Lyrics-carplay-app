@@ -9,7 +9,7 @@
 
 ## Current implementation and next verification
 
-Current direction (2026-11-16): Apple Music first, then authorized Spotify metadata; synchronized lyrics require a separately permitted provider. Demo is the account-free first-launch experience. Small-widget and Live Activity source implementations are now included in an embedded extension; Apple builds, App Group provisioning and real CarPlay rendering remain unverified. YouTube stays in its own app with an informative AirPlay setup guide. This supersedes the earlier Spotify-first roadmap. See [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [platform limitations](docs/CARPLAY_LIMITATIONS.md).
+Current direction (2026-11-16): Apple Music first, then authorized Spotify metadata; synchronized lyrics require a separately permitted provider. Demo is the account-free first-launch experience. Small-widget and Live Activity source implementations are now included in an embedded extension; Unsigned Apple device compilation is verified in macOS CI; App Group provisioning and real CarPlay rendering remain unverified. YouTube stays in its own app with an informative AirPlay setup guide. This supersedes the earlier Spotify-first roadmap. See [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [platform limitations](docs/CARPLAY_LIMITATIONS.md).
 
 Implemented code now includes primary Spotify Web API/PKCE support, preserved legacy App Remote, an Apple Music system-player adapter, persisted source selection, onboarding/privacy controls, local demo lyrics, a configurable HTTP lyrics client, an original-fixture development server, AirPlay video, and a simulator-only CarPlay template preview. Account setup, licensed production data, Apple approval, and physical validation are not implied by this code.
 
@@ -29,6 +29,8 @@ bash scripts/verify_on_mac.sh
 ```
 
 ## Current foundation
+
+[macOS CI passes](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43941873382): unsigned device Release app/extension build, 71 unit tests and four UI tests on Xcode 16.4/iOS 18.5. Live account authorization, provisioning and physical vehicle behavior remain unverified.
 
 The existing project and original three targets are preserved; LyricsWidgets is an additional embedded extension target. Models, protocol-based providers, the SwiftUI lyrics screen, and binary-search synchronization are reused. Demo uses original timestamped lyrics and an injectable monotonic clock. The lyrics screen now shows current/adjacent lines with seek, speed, and offset controls, and supports session-only UTF-8 LRC imports. A pure prepared synchronization engine handles timing and suppresses unchanged line updates. Expand Timing and LRC import in Now Playing to test these controls. `LyricContext` exposes serializable current/adjacent lines for future shared surfaces; it does not persist licensed text or claim a live CarPlay connection.
 

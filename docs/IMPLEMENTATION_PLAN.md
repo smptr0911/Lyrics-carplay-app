@@ -37,3 +37,7 @@ The embedded extension, small widget, standard/small Live Activity, shared repos
 ## Music integration implementation
 
 Reusable capability/event interfaces, public Apple Music system metadata, primary Spotify Web API PKCE/refresh/Keychain support, conservative local lyric matching, metadata-sensitive rematching and mocked tests are implemented in source. Spotify remains read-only and lyric synchronization remains blocked by policy. Owned-domain/provisioning setup and signed live-account tests are still required. See [current provider implementation](MUSIC_PROVIDERS.md).
+
+## Current verification
+
+[macOS CI](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43941873382) passes unsigned device Release compilation and the complete 71-unit/four-UI simulator suite on Xcode 16.4/iOS 18.5. Earlier source-only milestones above are superseded by this build/test result. Real music accounts, owned HTTPS callback/AASA setup, signing, licensed production lyrics and physical CarPlay/AirPlay behavior remain release gates.
