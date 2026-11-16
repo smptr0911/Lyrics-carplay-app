@@ -26,6 +26,8 @@ MusicKit playback time is public, but is not universal access to arbitrary apps'
 
 Apple describes AirPlay video in supported cars while not driving. Compatibility is vehicle-dependent. Our app cannot enable another app's AirPlay output, force a route, detect an authoritative parked state, or bypass system motion restrictions. Open YouTube on iPhone, use its supported AirPlay controls if available, and follow the vehicle's setup instructions. If the route or video is unavailable, this app provides guidance only. No downloading, scraping, interception, or rehosting is implemented.
 
+The iPhone Video tab now links to `AirPlayGuideView`, with unknown compatibility, six manual setup steps, troubleshooting and a public HTTPS Open YouTube action with web fallback. No video entitlement is added. The separate direct-stream player's AVRoutePickerView applies to that player, never to YouTube. See [parked-video API research and validation](parked-video.md), including the distinction between this guide and newer approved CarPlay video-category apps.
+
 Apple also documents newer CarPlay video-app capabilities; those are separate from this external YouTube guide and must not be inferred to authorize controlling YouTube.
 
 - [CarPlay capabilities and AirPlay video](https://developer.apple.com/carplay/)

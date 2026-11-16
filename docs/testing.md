@@ -24,7 +24,9 @@ Run `python scripts/validate_project.py` and `python -m unittest discover -s bac
 
 On macOS run `bash scripts/verify_on_mac.sh` for simulator tests and unsigned Release compilation. Record Xcode/SDK versions with `xcodebuild -version` and `xcodebuild -showsdks`. Inspect installed WidgetKit/ActivityKit interfaces before adding SDK-dependent APIs. No Xcode, Swift compiler, or Apple SDK is available in the current Windows workspace.
 
-Manual foundation check: launch with fresh defaults, continue with Demo, open Now Playing, press Play, observe Open Road and the highlighted original lyrics, pause, seek backwards, and resume. Verify the Video tab guide opens YouTube externally. Test small screens and accessibility text sizes.
+Manual foundation check: launch with fresh defaults, continue with Demo, open Now Playing, press Play, observe Open Road and the highlighted original lyrics, pause, seek backwards, and resume. Open Video → YouTube and AirPlay guide. Verify unknown compatibility, the six manual steps, troubleshooting and the Open YouTube button. Test installed/uninstalled YouTube and universal-link preferences on a physical iPhone; a successful URL handoff does not establish AirPlay success. Test small screens, light/dark appearance and accessibility text sizes. Follow [parked-video hardware checks](parked-video.md) separately; simulator tests cannot certify a vehicle.
+
+`AirPlayHelpTests` uses an injected URL opener for successful app handoff, website fallback, launch failure/retry and initial no-side-effect behavior. Help-state coverage includes unknown compatibility, unsupported vehicles and unavailable AirPlay. `testAirPlayGuideOpensFromVideoTab` covers navigation and button availability without leaving the app. No automated test simulates a vehicle being parked or claims to validate real YouTube output.
 
 Before any widget milestone, verify App Group access on a signed device, stale-data rendering, system refresh budgets, locked-phone behavior, and supported CarPlay hardware. YouTube route availability and vehicle motion enforcement require physical testing and cannot be established by unit tests.
 

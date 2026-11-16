@@ -111,7 +111,9 @@ Lyrics CarPlay aims to make it easier to follow lyrics for the music you're list
 
 ### Added scope: parked video
 
-The **Video** tab plays user-provided direct HTTPS MP4/HLS streams using native playback controls and supports AirPlay output to compatible parked vehicles. The vehicle/system controls external video availability. This is not a built-in parking detector or native CarPlay video browser. See [parked video implementation and hardware checks](docs/parked-video.md).
+The **Video → YouTube and AirPlay guide** screen explains manual setup, manufacturer compatibility requirements and missing-output troubleshooting. **Open YouTube** attempts the public HTTPS homepage through an installed universal-link handler, then falls back to normal web routing. It neither plays a video nor starts AirPlay. Vehicle compatibility remains unknown to this app.
+
+The separate **Play your own video** section retains user-provided direct HTTPS MP4/HLS playback with native controls and an AirPlay picker for this app's player. The vehicle/system controls external video availability. See [parked video implementation, official API research and hardware checks](docs/parked-video.md).
 
 - [x] iPhone video player, AirPlay route selection, URL validation, loading and error states.
 - [ ] Validate playback and vehicle restrictions on a supported physical vehicle.
