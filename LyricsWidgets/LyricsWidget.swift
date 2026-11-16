@@ -36,7 +36,8 @@ struct LyricsTimelineProvider: TimelineProvider {
             let repository = try AppGroupLyricsRepository.configured()
             snapshot = try await repository.load() ?? .unavailable(at: now)
         } catch { snapshot = .unavailable(at: now, message: "Shared storage unavailable") }
-        return LyricsEntry(date: now, snapshot: snapshot.presentation(at: now))
+        let captured = Date()
+        return LyricsEntry(date: captured, snapshot: snapshot.presentation(at: captured))
     }
 }
 

@@ -19,6 +19,7 @@ jobs:
           xcodebuild -version
           xcodebuild -showsdks
           xcrun swift --version
+          python3 scripts/inspect_apple_sdk.py
       - name: Validate project structure
         run: python3 scripts/validate_project.py
       - name: Run simulator unit and UI tests
@@ -42,6 +43,7 @@ jobs:
           xcodebuild -version
           xcodebuild -showsdks
           xcrun swift --version
+          python3 scripts/inspect_apple_sdk.py
       - name: Compile unsigned device Release build
         shell: bash
         run: |

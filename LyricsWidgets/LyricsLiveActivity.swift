@@ -3,7 +3,15 @@ import SwiftUI
 import WidgetKit
 
 struct LyricsLiveActivity: Widget {
-    var body: some WidgetConfiguration { configuration }
+    var body: some WidgetConfiguration { supportedConfiguration() }
+
+    private func supportedConfiguration() -> some WidgetConfiguration {
+        if #available(iOS 18.0, *) {
+            return configuration.supplementalActivityFamilies([.small])
+        } else {
+            return configuration
+        }
+    }
 
     var configuration: ActivityConfiguration<LyricsActivityAttributes> {
         ActivityConfiguration(for: LyricsActivityAttributes.self) { context in
@@ -34,13 +42,6 @@ struct LyricsLiveActivity: Widget {
                 Image(systemName: snapshot.status == .ready ? "music.note" : "clock")
             }
         }
-    }
-}
-
-@available(iOS 18.0, *)
-struct SmallFamilyLyricsLiveActivity: Widget {
-    var body: some WidgetConfiguration {
-        LyricsLiveActivity().configuration.supplementalActivityFamilies([.small])
     }
 }
 
