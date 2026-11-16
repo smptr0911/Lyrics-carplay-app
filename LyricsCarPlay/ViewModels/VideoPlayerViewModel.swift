@@ -7,6 +7,7 @@ final class VideoPlayerViewModel: ObservableObject {
     @Published private(set) var player: AVPlayer?
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var externalURL: URL?
     private var statusObservation: NSKeyValueObservation?
     private var failureObserver: AnyCancellable?
     private var interruptionObserver: AnyCancellable?
@@ -32,6 +33,11 @@ final class VideoPlayerViewModel: ObservableObject {
         stop()
         guard let source = VideoSource(text: urlText) else {
             errorMessage = "Enter a valid HTTPS video URL without embedded credentials."
+            return
+        }
+        if source.isWebPage {
+            externalURL = source.url
+            errorMessage = "YouTube pages cannot be played as video streams here. Open the link in YouTube or Safari."
             return
         }
         do {
@@ -92,5 +98,6 @@ final class VideoPlayerViewModel: ObservableObject {
         player = nil
         isLoading = false
         errorMessage = nil
+        externalURL = nil
     }
 }

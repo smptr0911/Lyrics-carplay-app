@@ -1,5 +1,6 @@
 import SwiftUI
 import AVKit
+import UIKit
 
 struct ParkedVideoView: View {
     @StateObject private var model = VideoPlayerViewModel()
@@ -30,6 +31,12 @@ struct ParkedVideoView: View {
                     if let message = model.errorMessage {
                         Text(message).foregroundStyle(.red)
                             .accessibilityIdentifier("videoError")
+                    }
+                    if let externalURL = model.externalURL {
+                        Button("Open in YouTube or Safari") {
+                            UIApplication.shared.open(externalURL)
+                        }
+                        .buttonStyle(.bordered)
                     }
                     if let player = model.player {
                         NativeVideoPlayer(player: player)

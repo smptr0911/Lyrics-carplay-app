@@ -11,4 +11,10 @@ final class VideoSourceTests: XCTestCase {
             XCTAssertNil(VideoSource(text: text), text)
         }
     }
+
+    func testRecognizesYouTubePagesAsExternalWebPages() {
+        XCTAssertTrue(VideoSource(text: "https://youtu.be/example")?.isWebPage == true)
+        XCTAssertTrue(VideoSource(text: "https://www.youtube.com/watch?v=example")?.isWebPage == true)
+        XCTAssertFalse(VideoSource(text: "https://cdn.example.com/video.mp4")?.isWebPage == true)
+    }
 }

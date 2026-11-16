@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def validate():
     project = ROOT / "LyricsCarPlay.xcodeproj/project.pbxproj"
     content = project.read_text(encoding="utf-8")
-    definitions = re.findall(r"^\s*([A-F0-9]{24}) = ", content, re.M)
+    definitions = re.findall(r"^\s*([A-F0-9]{24})(?:\s+/\*[^*\n]*(?:\*/))?\s+= ", content, re.M)
     references = set(re.findall(r"\b[A-F0-9]{24}\b", content))
     assert len(definitions) == len(set(definitions)), "Duplicate Xcode IDs"
     assert references == set(definitions), "Unresolved Xcode IDs"
@@ -27,7 +27,11 @@ def validate():
         ("LyricsCarPlayTests", "59ACFA4C2F5525670A908C98"),
         ("LyricsCarPlayUITests", "128178DD6E58AD69D98310C4"),
     ]:
-        body = re.search(phase + r" = .*", content).group(0)
+        body = re.search(
+            phase + r"(?:\s+/\*[^*\n]*\*/)? = \{\n(.*?)\n\t\t\};",
+            content,
+            re.S,
+        ).group(1)
         for path in (ROOT / folder).rglob("*.swift"):
             relative = path.relative_to(ROOT).as_posix()
             key = hashlib.sha1(("build:" + relative).encode()).hexdigest()[:24].upper()
@@ -56,7 +60,7 @@ def validate():
     pins = json.loads((ROOT / "LyricsCarPlay.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved").read_text())
     pin = next(item for item in pins["pins"] if item["identity"] == "ios-sdk")
     assert pin["state"] == {"version": "5.0.1", "revision": "0b3e54771738ad5e64f22c8e5e19ca76d6becc6c"}
-    assert 'kind = exactVersion; version = 5.0.1;' in content
+    assert re.search(r"kind = exactVersion;\s+version = 5\.0\.1;", content)
     assert 'productName = SpotifyiOS;' in content
     assert (ROOT / "Config/App.xcconfig").exists()
     tree = ET.parse(ROOT / "LyricsCarPlay.xcodeproj/xcshareddata/xcschemes/LyricsCarPlay.xcscheme")
