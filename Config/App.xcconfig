@@ -1,5 +1,7 @@
 // Public Spotify application identifier. No client secret belongs in an iOS app.
 APP_BUNDLE_IDENTIFIER = org.example.LyricsCarPlay
+// Preserve the existing team; override this variable in Local.xcconfig for your account.
+APP_DEVELOPMENT_TEAM = 2JH4JHH9XY
 SPOTIFY_REDIRECT_URI =
 SPOTIFY_AUTH_HOST =
 APP_ENTITLEMENTS = LyricsCarPlay/Resources/LyricsCarPlay.entitlements

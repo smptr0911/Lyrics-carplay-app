@@ -2,6 +2,7 @@
 import argparse
 import json
 import platform
+import plistlib
 import shutil
 import subprocess
 from pathlib import Path
@@ -21,6 +22,11 @@ def inspect(probe_menu=False):
     if not shutil.which("xcodebuild") or not shutil.which("xcrun"):
         print("Xcode/Apple SDKs/Simulator: unavailable locally; use a Mac or macOS CI.")
         return
+    for application in sorted(Path("/Applications").glob("Xcode*.app")):
+        info = application / "Contents/Info.plist"
+        if info.is_file():
+            version = plistlib.loads(info.read_bytes()).get("CFBundleShortVersionString", "unknown")
+            print(f"Installed Xcode bundle: {application.name}, version {version}")
     for args in (["xcodebuild", "-version"], ["xcodebuild", "-showsdks"],
                  ["xcrun", "swift", "--version"], ["xcrun", "simctl", "list", "runtimes"]):
         print(command(args).strip())

@@ -88,6 +88,7 @@ def validate():
     assert re.search(r"kind = exactVersion;\s+version = 5\.0\.1;", content)
     assert 'productName = SpotifyiOS;' in content
     assert (ROOT / "Config/App.xcconfig").exists()
+    assert content.count('DEVELOPMENT_TEAM = "$(APP_DEVELOPMENT_TEAM)";') == 8, "All targets must honor the local team override"
     tree = ET.parse(ROOT / "LyricsCarPlay.xcodeproj/xcshareddata/xcschemes/LyricsCarPlay.xcscheme")
     testables = tree.findall(".//TestableReference/BuildableReference")
     assert {item.attrib["BlueprintName"] for item in testables} == {"LyricsCarPlayTests", "LyricsCarPlayUITests"}
