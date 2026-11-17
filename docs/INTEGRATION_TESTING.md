@@ -8,9 +8,13 @@ Local authoring: Windows 11; Xcode, Apple SDKs, simulator runtimes, USB iPhone a
 
 The completed pre-audit [CI baseline](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43946086918) used Xcode 16.4, compiler Swift 6.1.2 and iOS 18.5. App and extension compile in Swift 5 language mode; deployment is iOS 17, and supplemental small activity APIs are guarded for iOS 18. Current audit CI evidence is recorded below after completion. Selected CI tools do not establish the developer's local Xcode version.
 
+Actual runner inspection also found Xcode 16.0–16.4 and 26.0.1–26.3 installations, with iOS simulator runtimes 18.5, 18.6, 26.0.1, 26.1 and 26.2. The selected default remains Xcode 16.4 / iOS 18.5 SDK. Resolved app and extension settings agree on iOS 17, Swift 5, automatic signing, team `2JH4JHH9XY` and placeholder group `group.org.example.LyricsCarPlay`; these do not prove provisioning. Public accessibility automation verified the selected Simulator's **I/O > External Displays > CarPlay** menu. Neither that probe nor the existence of newer tools establishes actual CarPlay rendering.
+
 Shared schemes: `LyricsCarPlay` (app, embedded extension, unit and UI tests), `CarPlay Simulator` (legacy simulator-only template preview). Four targets remain: app, unit tests, UI tests, LyricsWidgets. Automatic signing uses `APP_DEVELOPMENT_TEAM` consistently across all targets. The inherited default team and `org.example` bundle identifier are not transferable provisioning. The registered group must match app and extension; `NSSupportsLiveActivities` is enabled in both app Info variants. No frequent ActivityKit push entitlement, APNs server or background audio execution mode is added. Device builds contain no CarPlay template scene or category entitlement. Simulator audio-category entitlements are isolated to the existing prototype.
 
 ## Verification matrix
+
+Final audit result: [CI run 43951717742](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43951717742) passed all four jobs. Xcode 16.4 selected iPhone 16 Pro / iOS 18.5; Xcode 26.3 selected iPhone 17 Pro / iOS 26.2. Each toolchain passed 79 unit tests and 5 UI tests. Unsigned device Release builds and static analysis passed; the modern job also explicitly built LyricsWidgets for Simulator. Local structural checks and all 10 backend tests passed. Result bundles and logs are retained as workflow artifacts. These results do not verify physical CarPlay, real account authorization, signed App Groups or vehicle video output.
 
 | Area | Automated evidence | Still requires manual testing |
 |---|---|---|
@@ -34,6 +38,7 @@ No account-backed integration or physical vehicle presentation is treated as tes
 - Added Debug-only `LyricsCarPlay` / `SurfaceTiming` logs containing event labels and snapshot age only. No lyrics, titles, provider URLs, credentials or group paths are logged. Events distinguish saves, widget reload requests, widget timeline reads and ActivityKit calls returning. Release emits none of these timing logs.
 - Extended Mac verification to inventory actual tools/resolved settings and run `xcodebuild analyze`. Clang analysis does not prove Swift memory/race safety. A cold CoreSimulator inventory timeout is explicitly unverified; the real test command still requires an available runtime.
 - Simulator test runs retain a unique `.xcresult` bundle under `.build/logs`, uploaded with CI logs. Repeated local checks do not collide with an existing result bundle.
+- Fixed runtime selection: tests now choose an installed iPhone runtime at or below the selected simulator SDK version, rather than blindly choosing a newer runtime installed for another Xcode. The previous selector chose iOS 26.2 while using the iOS 18.5 SDK and incurred lengthy startup; all 79 unit tests passed in that superseded run before cancellation. CI additionally verifies the discovered Xcode 26.3 installation in its own job. The independent environment/menu job avoids affecting XCTest's Simulator process and supports an environment-only workflow dispatch.
 
 ## Measure system update behavior
 
@@ -56,3 +61,11 @@ App policy currently coalesces lyric-only widget reload requests to one per minu
 5. Check widget gallery/background/margins and ActivityKit start/update/end, lock, dismissal and re-entry. Measure rendering as described above on supported CarPlay hardware.
 6. Exercise the guide with YouTube installed/absent. Vehicle/video compatibility is manufacturer/content-dependent; respect OS/vehicle enforcement. Do not test while operating a vehicle.
 7. Profile memory, energy and network polling with Instruments; review final signed Archive privacy manifests and rights. Complete these gates before TestFlight or production claims.
+
+## Files changed by this audit
+
+- Signing: `Config/App.xcconfig`, `Config/Local.xcconfig.example`, `LyricsCarPlay.xcodeproj/project.pbxproj`.
+- Runtime: `LyricsCarPlay/Services/Playback/SpotifyMusicSource.swift`, `LyricsCarPlay/Services/Surfaces/LyricsSurfaceController.swift`, `LyricsCarPlay/Shared/SharedLyricsRepository.swift`, `LyricsWidgets/LyricsWidget.swift`.
+- Regression tests: `LyricsCarPlayTests/NowPlayingLifecycleTests.swift`, `LyricsCarPlayTests/LyricsSurfaceTests.swift`.
+- Tooling: `.github/workflows/ios-ci.yml`, `scripts/inspect_development_environment.py`, `scripts/validate_project.py`, `scripts/verify_on_mac.sh`.
+- Handoff: `README.md`, `docs/INTEGRATION_TESTING.md`, `docs/carplay-simulator.md`, `docs/testing.md`, `docs/MUSIC_PROVIDERS.md`, `docs/release-checklist.md`.

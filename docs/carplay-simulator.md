@@ -38,7 +38,7 @@ Use a compatible vehicle or powered aftermarket head unit. Apple recommends wire
 
 ## Evidence status
 
-- Standard external-display menu: probe output is recorded with the final integration run; automated menu existence does not mean a CarPlay session/presentation was tested.
+- Standard external-display menu: public accessibility automation verified **I/O > External Displays > CarPlay** on the CI runner's selected Xcode 16.4 Simulator. Automated menu existence does not mean a CarPlay session/presentation was tested. See the exact environment evidence in the integration record.
 - Standalone Additional Tools simulator and Xcode 27 Device Hub: not installed or exercised here; exact package compatibility unverified.
 - Signed iPhone, CarPlay widget selection/rendering, Dashboard Live Activity, vehicle AirPlay output: not exercised here.
 - App/extension builds, unit/UI tests and source/repository checks: see [integration verification](INTEGRATION_TESTING.md).

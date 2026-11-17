@@ -15,7 +15,7 @@ An iPhone lyrics companion with a foreground synchronization engine, authorized 
 
 Minimum deployment: **iOS 17**, iPhone. Use **Xcode 16 or newer** to compile the guarded iOS 18 small activity family. The project retains **Swift 5 language mode** with targeted concurrency checks and async/await; it is not declared Swift 6 strict-mode clean. macOS must meet the selected Xcode's requirements; consult [Apple's compatibility table](https://developer.apple.com/xcode/system-requirements/).
 
-The last completed pre-audit [macOS CI run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43946086918) built app and extension for unsigned device Release and passed 77 unit / 5 UI tests on Xcode 16.4, Swift compiler 6.1.2 and iOS 18.5. The [integration verification record](docs/INTEGRATION_TESTING.md) records the final audit separately. Local authoring is Windows; no local Xcode or physical iPhone/vehicle is attached to this session.
+The final [macOS CI run](https://github.com/smptr0911/Lyrics-carplay-app/actions/runs/43951717742) passed on **Xcode 16.4 / iOS 18.5** and **Xcode 26.3 / iOS 26.2**: 79 unit tests and 5 UI tests on each toolchain, unsigned device Release builds, widget compilation and static analysis. See the [integration verification record](docs/INTEGRATION_TESTING.md). Local authoring is Windows; no local Xcode or physical iPhone/vehicle is attached to this session.
 
 CarPlay widgets and Live Activities require compatible **iOS 26+** CarPlay environments. Compiling on the iOS 18.5 SDK does not verify those presentations. Neither a standard CarPlay connection nor an iOS upgrade guarantees AirPlay vehicle video support.
 
